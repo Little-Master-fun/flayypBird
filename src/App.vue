@@ -205,6 +205,37 @@ const playMusic = () => {
   }
 };
 
+// 分享功能
+const shareInfo = () => {
+  const shareData = {
+    title: "Flappy Bird",
+    text: "我在 放风筝 中得到了 " + bestScore + " 分\n 快来点击连接挑战吧👇👇\n https://flappybird.0linetekcenter.tech/",
+    url: window.location.href,
+  };
+  navigator.clipboard.writeText(shareData.text).then(() => {
+        const toast = document.createElement("div");
+        toast.textContent = "分享信息已复制！";
+        toast.style.position = "fixed";
+        toast.style.top = "10px";
+        toast.style.left = "50%";
+        toast.style.transform = "translateX(-50%)";
+        toast.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+        toast.style.color = "white";
+        toast.style.padding = "10px 20px";
+        toast.style.borderRadius = "5px";
+        toast.style.zIndex = "1000";
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+          document.body.removeChild(toast);
+        }, 3000);
+    }).catch(err => {
+        console.error("复制失败: ", err);
+    });
+  // navigator.share(shareData).catch((error) => {
+  //   console.error("Error sharing:", error);
+  // });
+};
 onMounted(() => {
   document.addEventListener("keydown", jump);
   document.addEventListener("click", jump);
@@ -223,6 +254,21 @@ onMounted(() => {
       backgroundPositionX: bgDis + 'px',
     }"
   >
+    <!-- 分享按钮 -->
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      fill="white"
+      class="bi bi-share absolute right-12 top-2 cursor-pointer z-10"
+      viewBox="0 0 16 16"
+      @click="shareInfo"
+    >
+      <path
+        d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.5 2.5 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5m-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3"
+      />
+    </svg>
+
     <!-- 音乐 -->
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -324,7 +370,7 @@ onMounted(() => {
 
       <!-- 蝴蝶 -->
       <div
-        class="absolute left-[5vw] w-[70px] h-[70px]  md:w-[10vw] md:h-[12vh] bg-cover bg-no-repeat transition-transform -translate-y-1/2 bg-center"
+        class="absolute left-[5vw] w-[70px] h-[70px] md:w-[10vw] md:h-[12vh] bg-cover bg-no-repeat transition-transform -translate-y-1/2 bg-center"
         :class="isDown ? 'animate-birddown' : 'animate-birdup'"
         :style="{ backgroundImage: `url(${IMAGES.bird})`, top: birdTop + 'vh' }"
       ></div>
@@ -363,6 +409,7 @@ onMounted(() => {
       v-if="!gameRunning && score > 0 && gameOverFlag"
       class="absolute top-1/5 w-full flex flex-col items-center"
     >
+      <!-- 分享按钮 -->
       <div
         class="bg-contain bg-no-repeat bg-center w-full h-[60vh] flex flex-col items-center justify-center"
         :style="{ backgroundImage: `url(${IMAGES.gameOver})` }"
