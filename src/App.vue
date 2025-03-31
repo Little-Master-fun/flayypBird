@@ -325,7 +325,7 @@ onMounted(() => {
 
       <!-- 蝴蝶 -->
       <div
-        class="absolute left-[5vw] w-[10vw] h-[8vh] bg-cover bg-no-repeat transition-transform bg-center"
+        class="absolute left-[5vw] w-[70px] h-[70px] md:w-[10vw] md:h-[12vh] bg-cover bg-no-repeat transition-transform bg-center"
         :class="isDown ? 'animate-birddown' : 'animate-birdup'"
         :style="{ backgroundImage: `url(${IMAGES.bird})`, top: birdTop + 'vh' }"
       ></div>
