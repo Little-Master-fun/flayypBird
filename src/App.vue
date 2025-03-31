@@ -76,15 +76,14 @@ const gameOverFlag = ref<{ name: string; url: string; realurl: string; position:
 const bestScore = localStorage.getItem('best') || '无'
 
 // 开始界面的随机移动
-const randomTop = ref(Math.floor(Math.random() * 50))
-const randomLeft = ref(Math.floor(Math.random() * 50) + 25)
+const randomTop = ref(0)
+const randomLeft = ref(50)
 
 setInterval(() => {
   randomTop.value = Math.floor(Math.random() * 50) // Update randomTop every second
-  randomLeft.value = Math.floor(Math.random() * 100) + 0 // Update randomLeft every second
 }, 1000)
 
-// 小鸟位置
+// 蝴蝶位置
 const birdTop = ref(25) // 25vh
 const pipes = ref<
   {
@@ -119,7 +118,6 @@ const startGame = () => {
 // 结束游戏
 const gameOver = (message: string) => {
   gameRunning.value = false
-  console.log(`💀 游戏结束: ${message}`)
   if (timer) clearInterval(timer)
   if (localStorage.best === undefined || +localStorage.best < score.value) {
     localStorage.best = score.value
@@ -129,7 +127,7 @@ const gameOver = (message: string) => {
 // 蝴蝶移动
 const birdMove = () => {
   if (birdTop.value < 0 || birdTop.value > 90) {
-    gameOver('小鸟触底了！')
+    gameOver('触底了！')
     return
   }
   speed.value += isDown.value ? 0.4 : 0.7
@@ -238,10 +236,10 @@ onMounted(() => {
         <img
           :src="IMAGES.bird"
           alt="胡得"
-          class="absolute transition-transform ease-linear h-30"
+          class="absolute transition-transform ease-linear h-30 left-1/2 transform -translate-x-1/2"
           :style="{
             top: randomTop + 'vh',
-            left: randomLeft + 'vw',
+            
             transform: `rotate(${randomLeft > 50 ? 15 : -15}deg)`,
           }"
           style="transition: 3s"
@@ -251,7 +249,7 @@ onMounted(() => {
         class="w-[40vw] h-[15vh] bg-contain"
         :style="{ backgroundImage: `url(${IMAGES.head})` }"
       ></div>
-      <button @click="startGame" class="mt-6 px-6 py-2 bg-[#e86101] border-2 rounded shadow">
+      <button @click="startGame" class="mt-6 px-6 py-2 bg-[#e86101] border-2 rounded shadow cursor-pointer">
         <!-- <img :src="IMAGES.startBtn" alt="Start" /> -->
         <p
           style="font-family: 'ChillBitmap'; -webkit-text-stroke: 1px black"
@@ -279,7 +277,7 @@ onMounted(() => {
 
       <!-- 蝴蝶 -->
       <div
-        class="absolute left-[5vw] w-[5vw] h-[5vh] bg-cover bg-no-repeat transition-transform"
+        class="absolute left-[5vw] w-[10vw] h-[8vh] bg-cover bg-no-repeat transition-transform bg-center"
         :class="isDown ? 'animate-birddown' : 'animate-birdup'"
         :style="{ backgroundImage: `url(${IMAGES.bird})`, top: birdTop + 'vh' }"
       ></div>
