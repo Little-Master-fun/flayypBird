@@ -1,215 +1,228 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted } from "vue";
 
 // 图片资源
 const IMAGES = {
-  bg: '/images/bg.png',
-  bird: '/images/bird.gif',
-  birdStatic: '/images/bird-static.png',
-  head: '/img/head.png',
-  gameOver: '/images/gameover-bg.png',
-  gameOverB: '/images/gameover-b-img.jpg',
-  music: '/music/bg-music.mp3',
-}
+  bg: "/images/bg.png",
+  bird: "/images/bird.gif",
+  birdStatic: "/images/bird-static.png",
+  head: "/img/head.png",
+  gameOver: "/images/gameover-bg.png",
+  gameOverB: "/images/gameover-b-img.jpg",
+  music: "/music/bg-music.mp3",
+};
 
 // 管道图片数组
 const PIPE_IMAGES = [
   {
-    name: '野蔷薇',
-    url: '/images/pipe/yqw.png',
-    realurl: '/images/realphotos/yqw.jpg',
-    position: '趵突泉',
+    name: "野蔷薇",
+    url: "/images/pipe/yqw.png",
+    realurl: "/images/realphotos/yqw.jpg",
+    position: "趵突泉",
   },
   {
-    name: '大岛樱',
-    url: '/images/pipe/ddy.png',
-    realurl: '/images/realphotos/ddy.jpg',
-    position: '兴隆山',
+    name: "大岛樱",
+    url: "/images/pipe/ddy.png",
+    realurl: "/images/realphotos/ddy.jpg",
+    position: "兴隆山",
   },
   {
-    name: '紫丁香',
-    url: '/images/pipe/zdx.png',
-    realurl: '/images/realphotos/zdx.JPG',
-    position: '兴隆山',
+    name: "紫丁香",
+    url: "/images/pipe/zdx.png",
+    realurl: "/images/realphotos/zdx.JPG",
+    position: "兴隆山",
   },
   {
-    name: '玉兰',
-    url: '/images/pipe/yl.png',
-    realurl: '/images/realphotos/yl.jpg',
-    position: '中心校区',
+    name: "玉兰",
+    url: "/images/pipe/yl.png",
+    realurl: "/images/realphotos/yl.jpg",
+    position: "中心校区",
   },
   {
-    name: '海棠',
-    url: '/images/pipe/ht.png',
-    realurl: '/images/realphotos/ht.jpg',
-    position: '兴隆山',
+    name: "海棠",
+    url: "/images/pipe/ht.png",
+    realurl: "/images/realphotos/ht.jpg",
+    position: "兴隆山",
   },
   {
-    name: '鸢尾',
-    url: '/images/pipe/yw.png',
-    realurl: '/images/realphotos/yw.jpg',
-    position: '趵突泉',
+    name: "鸢尾",
+    url: "/images/pipe/yw.png",
+    realurl: "/images/realphotos/yw.jpg",
+    position: "趵突泉",
   },
   {
-    name: '美人梅',
-    url: '/images/pipe/mrm.png',
-    realurl: '/images/realphotos/mrm.jpg',
-    position: '趵突泉',
+    name: "美人梅",
+    url: "/images/pipe/mrm.png",
+    realurl: "/images/realphotos/mrm.jpg",
+    position: "趵突泉",
   },
   {
-    name: '山樱花',
-    url: '/images/pipe/syh.png',
-    realurl: '/images/realphotos/syh.jpg',
-    position: '兴隆山',
+    name: "山樱花",
+    url: "/images/pipe/syh.png",
+    realurl: "/images/realphotos/syh.jpg",
+    position: "兴隆山",
   },
-]
+];
 
 // 游戏状态
-const bgDis = ref(0)
-const speed = ref(0)
-const isDown = ref(true)
-const score = ref(0)
-const gameRunning = ref(false)
-const gameOverFlag = ref<{ name: string; url: string; realurl: string; position: string } | null>(
-  null,
-)
-const bestScore = localStorage.getItem('best') || '无'
-
+const bgDis = ref(0);
+const speed = ref(0);
+const isDown = ref(true);
+const score = ref(0);
+const gameRunning = ref(false);
+const gameOverFlag = ref<{
+  name: string;
+  url: string;
+  realurl: string;
+  position: string;
+} | null>(null);
+const bestScore = localStorage.getItem("best") || "无";
+const videoPlaying = ref(true);
 // 开始界面的随机移动
-const randomTop = ref(0)
-const randomLeft = ref(50)
+const randomTop = ref(0);
+const randomLeft = ref(50);
 
 setInterval(() => {
-  randomTop.value = Math.floor(Math.random() * 50) // Update randomTop every second
-}, 1000)
+  randomTop.value = Math.floor(Math.random() * 50); // Update randomTop every second
+}, 1000);
 
 // 蝴蝶位置
-const birdTop = ref(25) // 25vh
+const birdTop = ref(25); // 25vh
 const pipes = ref<
   {
-    height: number
-    left: number
-    img: { name: string; url: string; realurl: string; position: string }
+    height: number;
+    left: number;
+    img: { name: string; url: string; realurl: string; position: string };
   }[]
->([])
-const space = 100
-const gap = 20 // vh单位，保持比例一致
-let count = 0
-let timer: ReturnType<typeof setInterval> | null = null
+>([]);
+const space = 100;
+const gap = 20; // vh单位，保持比例一致
+let count = 0;
+let timer: ReturnType<typeof setInterval> | null = null;
 
 // 开始游戏
 const startGame = () => {
-  gameRunning.value = true
-  birdTop.value = 25
-  score.value = 0
-  speed.value = 0
-  isDown.value = true
-  pipes.value = []
-  gameOverFlag.value = null
+  gameRunning.value = true;
+  birdTop.value = 25;
+  score.value = 0;
+  speed.value = 0;
+  isDown.value = true;
+  pipes.value = [];
+  gameOverFlag.value = null;
 
   timer = setInterval(() => {
-    bgMove()
-    birdMove()
-    pipeMove()
-    checkCollision()
-  }, 30)
-}
+    bgMove();
+    birdMove();
+    pipeMove();
+    checkCollision();
+  }, 30);
+};
 
 // 结束游戏
 const gameOver = (message: string) => {
-  gameRunning.value = false
-  if (timer) clearInterval(timer)
+  gameRunning.value = false;
+  if (timer) clearInterval(timer);
   if (localStorage.best === undefined || +localStorage.best < score.value) {
-    localStorage.best = score.value
+    localStorage.best = score.value;
   }
-}
+};
 
 // 蝴蝶移动
 const birdMove = () => {
   if (birdTop.value < 0 || birdTop.value > 90) {
-    gameOver('触底了！')
-    return
+    gameOver("触底了！");
+    return;
   }
-  speed.value += isDown.value ? 0.4 : 0.7
-  speed.value = Math.min(speed.value, 8)
+  speed.value += isDown.value ? 0.4 : 0.7;
+  speed.value = Math.min(speed.value, 8);
   if (!isDown.value && speed.value >= 0) {
-    isDown.value = true
+    isDown.value = true;
   }
-  birdTop.value += speed.value * 0.3
-}
+  birdTop.value += speed.value * 0.3;
+};
 
 // 跳跃
 const jump = () => {
-  if (!gameRunning.value) return
-  isDown.value = false
-  speed.value = -8
-}
+  if (!gameRunning.value) return;
+  isDown.value = false;
+  speed.value = -8;
+};
 
 // 管道移动和生成
 const pipeMove = () => {
-  count++
+  count++;
   if (count === space) {
-    count = 0
-    const pipeHeight = Math.floor(Math.random() * 30) + 20 // 20-50vh
-    const randomPipe = PIPE_IMAGES[Math.floor(Math.random() * PIPE_IMAGES.length)] // **随机管道**
-    pipes.value.push({ height: pipeHeight, left: 100, img: randomPipe }) // 100vw
+    count = 0;
+    const pipeHeight = Math.floor(Math.random() * 30) + 20; // 20-50vh
+    const randomPipe =
+      PIPE_IMAGES[Math.floor(Math.random() * PIPE_IMAGES.length)]; // **随机管道**
+    pipes.value.push({ height: pipeHeight, left: 100, img: randomPipe }); // 100vw
   }
-  pipes.value = pipes.value.map((pipe) => ({ ...pipe, left: pipe.left - 1 }))
-  pipes.value = pipes.value.filter((pipe) => pipe.left > -20)
-}
+  pipes.value = pipes.value.map((pipe) => ({ ...pipe, left: pipe.left - 1 }));
+  pipes.value = pipes.value.filter((pipe) => pipe.left > -20);
+};
 
 // 碰撞检测和计分函数
 const checkCollision = () => {
   for (const pipe of pipes.value) {
     if (pipe.left < 6 && pipe.left + 5 > 2) {
       if (birdTop.value < pipe.height || birdTop.value > pipe.height + gap) {
-        gameOverFlag.value = pipe.img
-        console.log(gameOverFlag.value)
-        gameOver(`撞上了 ${pipe.img.name}`)
-        return
+        gameOverFlag.value = pipe.img;
+        console.log(gameOverFlag.value);
+        gameOver(`撞上了 ${pipe.img.name}`);
+        return;
       }
     }
     if (pipe.left == -15) {
-      score.value++
+      score.value++;
     }
   }
-}
+};
 
 // 背景移动
 const bgMove = () => {
-  bgDis.value -= 1
-}
+  bgDis.value -= 1;
+};
 
 // 图片下载
 const saveImg = () => {
-  const img = document.getElementById('flower') as HTMLImageElement
-  const name = img.getAttribute('name')
-  const link = document.createElement('a') // 创建一个 <a> 标签
-  link.href = img.src // 设置图片的 URL 为 <a> 标签的 href
-  link.download = name + '.jpg' // 设置下载的文件名
-  link.click() // 触发点击事件，下载图片
-}
+  const img = document.getElementById("flower") as HTMLImageElement;
+  const name = img.getAttribute("name");
+  const link = document.createElement("a"); // 创建一个 <a> 标签
+  link.href = img.src; // 设置图片的 URL 为 <a> 标签的 href
+  link.download = name + ".jpg"; // 设置下载的文件名
+  link.click(); // 触发点击事件，下载图片
+};
 
 // 音乐播放
 const playMusic = () => {
-  const audio = document.getElementById('bg-music') as HTMLAudioElement
+  const audio = document.getElementById("bg-music") as HTMLAudioElement;
   if (audio && audio.paused) {
-    audio.play()
+    audio.play();
+    videoPlaying.value = true;
   } else if (audio) {
-    audio.pause()
+    audio.pause();
+    videoPlaying.value = false;
   }
-}
+};
 
 onMounted(() => {
-  document.addEventListener('keydown', jump)
-  document.addEventListener('click', jump)
-})
+  document.addEventListener("keydown", jump);
+  document.addEventListener("click", jump);
+  const audio = document.getElementById("bg-music") as HTMLAudioElement;
+  if (audio && audio.paused) {
+    videoPlaying.value = false;
+  }
+});
 </script>
 
 <template>
   <div
     class="relative w-screen h-screen overflow-hidden bg-cover"
-    :style="{ backgroundImage: `url(${IMAGES.bg})`, backgroundPositionX: bgDis + 'px' }"
+    :style="{
+      backgroundImage: `url(${IMAGES.bg})`,
+      backgroundPositionX: bgDis + 'px',
+    }"
   >
     <!-- 音乐 -->
     <svg
@@ -220,13 +233,39 @@ onMounted(() => {
       class="bi bi-play-circle absolute right-2 top-2 cursor-pointer z-10"
       viewBox="0 0 16 16"
       @click="playMusic"
+      v-if="videoPlaying"
     >
-      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+      <path
+        d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"
+      />
       <path
         d="M6.271 5.055a.5.5 0 0 1 .52.038l3.5 2.5a.5.5 0 0 1 0 .814l-3.5 2.5A.5.5 0 0 1 6 10.5v-5a.5.5 0 0 1 .271-.445z"
       />
     </svg>
-    <audio id="bg-music" :src="IMAGES.music" autoplay loop preload="auto"></audio>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      fill="white"
+      class="bi bi-pause-circle absolute right-2 top-2 cursor-pointer z-10"
+      viewBox="0 0 16 16"
+      @click="playMusic"
+      v-else
+    >
+      <path
+        d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"
+      />
+      <path
+        d="M5 6.25a1.25 1.25 0 1 1 2.5 0v3.5a1.25 1.25 0 1 1-2.5 0v-3.5zm3.5 0a1.25 1.25 0 1 1 2.5 0v3.5a1.25 1.25 0 1 1-2.5 0v-3.5z"
+      />
+    </svg>
+    <audio
+      id="bg-music"
+      :src="IMAGES.music"
+      autoplay
+      loop
+      preload="auto"
+    ></audio>
     <!-- 开始界面 -->
     <div
       v-if="!gameRunning"
@@ -239,7 +278,7 @@ onMounted(() => {
           class="absolute transition-transform ease-linear h-30 left-1/2 transform -translate-x-1/2"
           :style="{
             top: randomTop + 'vh',
-            
+
             transform: `rotate(${randomLeft > 50 ? 15 : -15}deg)`,
           }"
           style="transition: 3s"
@@ -249,7 +288,10 @@ onMounted(() => {
         class="w-[40vw] h-[15vh] bg-contain"
         :style="{ backgroundImage: `url(${IMAGES.head})` }"
       ></div>
-      <button @click="startGame" class="mt-6 px-6 py-2 bg-[#e86101] border-2 rounded shadow cursor-pointer">
+      <button
+        @click="startGame"
+        class="mt-6 px-6 py-2 bg-[#e86101] border-2 rounded shadow cursor-pointer"
+      >
         <!-- <img :src="IMAGES.startBtn" alt="Start" /> -->
         <p
           style="font-family: 'ChillBitmap'; -webkit-text-stroke: 1px black"
@@ -266,10 +308,16 @@ onMounted(() => {
       <div
         class="absolute top-4 left-1/2 transform -translate-x-1/2 flex h-12 w-1/2 flex-col bg-cover bg-no-repeat bg-center justify-center items-center"
       >
-        <p style="font-family: 'ChillBitmap'" class="text-white text-2xl font-mibold">
+        <p
+          style="font-family: 'ChillBitmap'"
+          class="text-white text-2xl font-mibold"
+        >
           当前得分：{{ score }}
         </p>
-        <p style="font-family: 'ChillBitmap'" class="text-white text-2xl font-mibold">
+        <p
+          style="font-family: 'ChillBitmap'"
+          class="text-white text-2xl font-mibold"
+        >
           最高得分：{{ bestScore }}
         </p>
         <!-- <img v-for="digit in score.toString().split('')" :key="digit" :src="IMAGES.digits(+digit)" class="h-10" /> -->
@@ -327,13 +375,22 @@ onMounted(() => {
           id="flower"
           :name="gameOverFlag.name"
         />
-        <div class="text-white text-2xl mt-4 z-10" style="font-family: 'ChillBitmap'">
+        <div
+          class="text-white text-2xl mt-4 z-10"
+          style="font-family: 'ChillBitmap'"
+        >
           得分: {{ score }}
         </div>
-        <div class="text-white text-2xl mt-4 z-10" style="font-family: 'ChillBitmap'">
+        <div
+          class="text-white text-2xl mt-4 z-10"
+          style="font-family: 'ChillBitmap'"
+        >
           不小心撞在: {{ gameOverFlag?.name }}
         </div>
-        <div class="text-white text-2xl mt-4 z-10" style="font-family: 'ChillBitmap'">
+        <div
+          class="text-white text-2xl mt-4 z-10"
+          style="font-family: 'ChillBitmap'"
+        >
           拍摄地点: {{ gameOverFlag?.position }}
         </div>
         <div class="z-10">
@@ -360,7 +417,7 @@ onMounted(() => {
       class="absolute top-1/5 w-full flex flex-col items-center"
     >
       <div
-        class="bg-contain bg-no-repeat bg-center w-full h-[60vh] flex flex-col items-center justify-center "
+        class="bg-contain bg-no-repeat bg-center w-full h-[60vh] flex flex-col items-center justify-center"
         :style="{ backgroundImage: `url(${IMAGES.gameOver})` }"
       >
         <img
@@ -368,7 +425,10 @@ onMounted(() => {
           alt="realimg"
           class="mt-1 z-10 h-1/3 rounded-md border-4 border-[#543847]"
         />
-        <div class="text-white text-2xl mt-4 z-10" style="font-family: 'ChillBitmap'">
+        <div
+          class="text-white text-2xl mt-4 z-10"
+          style="font-family: 'ChillBitmap'"
+        >
           不小心触底啦！！
         </div>
         <div class="z-10">
