@@ -96,7 +96,7 @@ const pipes = ref<
   }[]
 >([]);
 const space = 100;
-const gap = 20; // vh单位，保持比例一致
+const gap = 23; // vh单位，保持比例一致
 let count = 0;
 let timer: ReturnType<typeof setInterval> | null = null;
 
@@ -168,7 +168,6 @@ const checkCollision = () => {
     if (pipe.left < 6 && pipe.left + 5 > 2) {
       if (birdTop.value < pipe.height || birdTop.value > pipe.height + gap) {
         gameOverFlag.value = pipe.img;
-        console.log(gameOverFlag.value);
         gameOver(`撞上了 ${pipe.img.name}`);
         return;
       }
@@ -199,10 +198,10 @@ const playMusic = () => {
   const audio = document.getElementById("bg-music") as HTMLAudioElement;
   if (audio && audio.paused) {
     audio.play();
-    videoPlaying.value = true;
+    videoPlaying.value = !videoPlaying.value;
   } else if (audio) {
     audio.pause();
-    videoPlaying.value = false;
+    videoPlaying.value = !videoPlaying.value;
   }
 };
 
@@ -325,7 +324,7 @@ onMounted(() => {
 
       <!-- 蝴蝶 -->
       <div
-        class="absolute left-[5vw] w-[70px] h-[70px] md:w-[10vw] md:h-[12vh] bg-cover bg-no-repeat transition-transform bg-center"
+        class="absolute left-[5vw] w-[70px] h-[70px]  md:w-[10vw] md:h-[12vh] bg-cover bg-no-repeat transition-transform -translate-y-1/2 bg-center"
         :class="isDown ? 'animate-birddown' : 'animate-birdup'"
         :style="{ backgroundImage: `url(${IMAGES.bird})`, top: birdTop + 'vh' }"
       ></div>
