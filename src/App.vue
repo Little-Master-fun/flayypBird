@@ -155,7 +155,7 @@ const pipeMove = () => {
     count = 0;
     const pipeHeight = Math.floor(Math.random() * 30) + 20; // 20-50vh
     const randomPipe =
-      PIPE_IMAGES[Math.floor(Math.random() * PIPE_IMAGES.length)]; // **随机管道**
+      PIPE_IMAGES[Math.floor(Math.random() * PIPE_IMAGES.length)]; // 随机管道
     pipes.value.push({ height: pipeHeight, left: 100, img: randomPipe }); // 100vw
   }
   pipes.value = pipes.value.map((pipe) => ({ ...pipe, left: pipe.left - 1 }));
@@ -187,9 +187,9 @@ const bgMove = () => {
 const saveImg = () => {
   const img = document.getElementById("flower") as HTMLImageElement;
   const name = img.getAttribute("name");
-  const link = document.createElement("a"); // 创建一个 <a> 标签
-  link.href = img.src; // 设置图片的 URL 为 <a> 标签的 href
-  link.download = name + ".jpg"; // 设置下载的文件名
+  const link = document.createElement("a");
+  link.href = img.src;
+  link.download = name + ".jpg";
   link.click(); // 触发点击事件，下载图片
 };
 
@@ -209,28 +209,34 @@ const playMusic = () => {
 const shareInfo = () => {
   const shareData = {
     title: "Flappy Bird",
-    text: "我在 放风筝 中得到了 " + bestScore + " 分\n 快来点击连接挑战吧👇👇\n https://flappybird.0linetekcenter.tech/",
+    text:
+      "我在趣味游戏《蝴蝶菲菲》中挑战自我，获得了 " +
+      bestScore +
+      " 分！🎮\n快来试试你的实力吧👇👇\nhttps://flappybird.0linetekcenter.tech/",
     url: window.location.href,
   };
-  navigator.clipboard.writeText(shareData.text).then(() => {
-        const toast = document.createElement("div");
-        toast.textContent = "分享信息已复制！";
-        toast.style.position = "fixed";
-        toast.style.top = "10px";
-        toast.style.left = "50%";
-        toast.style.transform = "translateX(-50%)";
-        toast.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
-        toast.style.color = "white";
-        toast.style.padding = "10px 20px";
-        toast.style.borderRadius = "5px";
-        toast.style.zIndex = "1000";
-        document.body.appendChild(toast);
+  navigator.clipboard
+    .writeText(shareData.text)
+    .then(() => {
+      const toast = document.createElement("div");
+      toast.textContent = "分享信息已复制！";
+      toast.style.position = "fixed";
+      toast.style.top = "10px";
+      toast.style.left = "50%";
+      toast.style.transform = "translateX(-50%)";
+      toast.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+      toast.style.color = "white";
+      toast.style.padding = "10px 20px";
+      toast.style.borderRadius = "5px";
+      toast.style.zIndex = "1000";
+      document.body.appendChild(toast);
 
-        setTimeout(() => {
-          document.body.removeChild(toast);
-        }, 3000);
-    }).catch(err => {
-        console.error("复制失败: ", err);
+      setTimeout(() => {
+        document.body.removeChild(toast);
+      }, 3000);
+    })
+    .catch((err) => {
+      console.error("复制失败: ", err);
     });
   // navigator.share(shareData).catch((error) => {
   //   console.error("Error sharing:", error);
@@ -239,10 +245,24 @@ const shareInfo = () => {
 onMounted(() => {
   document.addEventListener("keydown", jump);
   document.addEventListener("click", jump);
+  //初始化音乐按钮
   const audio = document.getElementById("bg-music") as HTMLAudioElement;
   if (audio && audio.paused) {
     videoPlaying.value = false;
   }
+  //预加载静态资源
+  const imageElements = Object.values(IMAGES).filter(
+    (url) =>
+      url.endsWith(".png") || url.endsWith(".jpg") || url.endsWith(".gif")
+  );
+  imageElements.forEach((url) => {
+    const img = new Image();
+    img.src = url;
+  });
+  PIPE_IMAGES.forEach((pip) => {
+    const img = new Image();
+    img.src = pip.url;
+  });
 });
 </script>
 
@@ -388,7 +408,7 @@ onMounted(() => {
           :style="{
             backgroundImage: `url(${pipe.img.url})`,
             height: '60vh',
-            transform: `translateY(${pipe.height - 60}vh)`,
+            transform: `translateY(${pipe.height - 60}vh) scaleY(-1)`,
           }"
         ></div>
 
