@@ -18,19 +18,19 @@ const PIPE_IMAGES = [
     name: "野蔷薇",
     url: "/images/pipe/yqw.png",
     realurl: "/images/realphotos/yqw.jpg",
-    position: "趵突泉",
+    position: "趵突泉校区",
   },
   {
     name: "大岛樱",
     url: "/images/pipe/ddy.png",
     realurl: "/images/realphotos/ddy.jpg",
-    position: "兴隆山",
+    position: "兴隆山校区",
   },
   {
     name: "紫丁香",
     url: "/images/pipe/zdx.png",
     realurl: "/images/realphotos/zdx.JPG",
-    position: "兴隆山",
+    position: "兴隆山校区",
   },
   {
     name: "玉兰",
@@ -42,28 +42,74 @@ const PIPE_IMAGES = [
     name: "海棠",
     url: "/images/pipe/ht.png",
     realurl: "/images/realphotos/ht.jpg",
-    position: "兴隆山",
+    position: "兴隆山校区",
   },
   {
     name: "鸢尾",
     url: "/images/pipe/yw.png",
     realurl: "/images/realphotos/yw.jpg",
-    position: "趵突泉",
+    position: "趵突泉校区",
   },
   {
     name: "美人梅",
     url: "/images/pipe/mrm.png",
     realurl: "/images/realphotos/mrm.jpg",
-    position: "趵突泉",
+    position: "趵突泉校区",
   },
   {
     name: "山樱花",
     url: "/images/pipe/syh.png",
     realurl: "/images/realphotos/syh.jpg",
-    position: "兴隆山",
+    position: "兴隆山校区",
   },
 ];
 
+const CAMPUS = [
+  {
+    name: "中心校区",
+    url: "/images/realphotos/zhongxinxiaoqiu.jpg",
+  },
+  {
+    name: "兴隆山",
+    url: "/images/realphotos/xinglongshan.jpg",
+  },
+  {
+    name: "趵突泉",
+    url: "/images/realphotos/baotuqian.jpg",
+  },
+  {
+    name: "千佛山",
+    url: "/images/realphotos/baotuqian.jpg",
+  },
+  {
+    name: "软件园",
+    url: "/images/realphotos/baotuqian.jpg",
+  },
+  {
+    name: "洪家楼",
+    url: "/images/realphotos/baotuqian.jpg",
+  },
+];
+// 校区数组
+const campuses = [
+  { name: "中心校区", url: "/images/realphotos/zhongxinxiaoqiu.jpg", range: [0, 270] },
+  { name: "兴隆山校区", url: "/images/realphotos/xinglongshan.jpg", range: [271, 720] },
+  { name: "趵突泉校区", url: "/images/realphotos/baotuqian.jpg", range: [721, 1200] },
+  { name: "千佛山校区", url: "/images/realphotos/qianfushan.jpg", range: [1201, 1800] },
+  { name: "软件园校区", url: "/images/realphotos/ruanjianyuan.jpg", range: [1801, 2300] },
+  { name: "洪家楼校区", url: "/images/realphotos/hongjialou.jpg", range: [2301, 2700] },
+];
+
+// 根据 bgDis 判断当前校区
+const getCurrentCampus = () => {
+  const absoluteBgDis = Math.abs(bgDis.value); // 取绝对值
+  for (const campus of campuses) {
+    if (absoluteBgDis % 3000 >= campus.range[0] && absoluteBgDis <= campus.range[1]) {
+      return campus;
+    }
+  }
+  return campuses[1]; // 如果不在任何范围内，返回 null
+};
 // 游戏状态
 const bgDis = ref(0);
 const speed = ref(0);
@@ -77,10 +123,13 @@ const gameOverFlag = ref<{
   position: string;
 } | null>(null);
 const bestScore = localStorage.getItem("best") || "无";
-const videoPlaying = ref(true);
+const videoPlaying = ref(false);
 // 开始界面的随机移动
 const randomTop = ref(0);
 const randomLeft = ref(50);
+const canRetry = ref(false);
+// 蝴蝶水平位置
+const segment = ref(0);
 
 setInterval(() => {
   randomTop.value = Math.floor(Math.random() * 50); // Update randomTop every second
@@ -109,6 +158,8 @@ const startGame = () => {
   isDown.value = true;
   pipes.value = [];
   gameOverFlag.value = null;
+  canRetry.value = false;
+  // bgDis.value = 0;
 
   timer = setInterval(() => {
     bgMove();
@@ -121,6 +172,9 @@ const startGame = () => {
 // 结束游戏
 const gameOver = (message: string) => {
   gameRunning.value = false;
+  setTimeout(() => {
+    canRetry.value = true;
+  }, 2000);
   if (timer) clearInterval(timer);
   if (localStorage.best === undefined || +localStorage.best < score.value) {
     localStorage.best = score.value;
@@ -130,6 +184,9 @@ const gameOver = (message: string) => {
 // 蝴蝶移动
 const birdMove = () => {
   if (birdTop.value < 0 || birdTop.value > 90) {
+    segment.value = Math.floor(Math.abs(bgDis.value) / 450) + 1;
+    console.log(bgDis.value);
+    
     gameOver("触底了！");
     return;
   }
@@ -196,6 +253,8 @@ const saveImg = () => {
 // 音乐播放
 const playMusic = () => {
   const audio = document.getElementById("bg-music") as HTMLAudioElement;
+  console.log(videoPlaying.value);
+
   if (audio && audio.paused) {
     audio.play();
     videoPlaying.value = !videoPlaying.value;
@@ -243,12 +302,15 @@ const shareInfo = () => {
   // });
 };
 onMounted(() => {
+  bgDis.value = 0;
   document.addEventListener("keydown", jump);
   document.addEventListener("click", jump);
   //初始化音乐按钮
   const audio = document.getElementById("bg-music") as HTMLAudioElement;
   if (audio && audio.paused) {
     videoPlaying.value = false;
+    console.log("音乐未播放");
+    console.log(videoPlaying.value);
   }
   //预加载静态资源
   const imageElements = Object.values(IMAGES).filter(
@@ -265,7 +327,6 @@ onMounted(() => {
   });
 });
 </script>
-
 <template>
   <div
     class="relative w-screen h-screen overflow-hidden bg-cover"
@@ -274,6 +335,23 @@ onMounted(() => {
       backgroundPositionX: bgDis + 'px',
     }"
   >
+    <!-- 规则介绍 -->
+    <!-- <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      fill="white"
+      class="bi bi-share absolute right-22 top-2 cursor-pointer z-10"
+      viewBox="0 0 16 16"
+
+    >
+      <path
+        d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"
+      />
+      <path
+        d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"
+      />
+    </svg> -->
     <!-- 分享按钮 -->
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -295,7 +373,7 @@ onMounted(() => {
       width="24"
       height="24"
       fill="white"
-      class="bi bi-play-circle absolute right-2 top-2 cursor-pointer z-10"
+      class="bi bi-pause-circle absolute right-2 top-2 cursor-pointer z-10"
       viewBox="0 0 16 16"
       @click="playMusic"
       v-if="videoPlaying"
@@ -304,7 +382,7 @@ onMounted(() => {
         d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"
       />
       <path
-        d="M6.271 5.055a.5.5 0 0 1 .52.038l3.5 2.5a.5.5 0 0 1 0 .814l-3.5 2.5A.5.5 0 0 1 6 10.5v-5a.5.5 0 0 1 .271-.445z"
+        d="M5 6.25a1.25 1.25 0 1 1 2.5 0v3.5a1.25 1.25 0 1 1-2.5 0v-3.5zm3.5 0a1.25 1.25 0 1 1 2.5 0v3.5a1.25 1.25 0 1 1-2.5 0v-3.5z"
       />
     </svg>
     <svg
@@ -312,7 +390,7 @@ onMounted(() => {
       width="24"
       height="24"
       fill="white"
-      class="bi bi-pause-circle absolute right-2 top-2 cursor-pointer z-10"
+      class="bi bi-play-circle absolute right-2 top-2 cursor-pointer z-10"
       viewBox="0 0 16 16"
       @click="playMusic"
       v-else
@@ -321,38 +399,24 @@ onMounted(() => {
         d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"
       />
       <path
-        d="M5 6.25a1.25 1.25 0 1 1 2.5 0v3.5a1.25 1.25 0 1 1-2.5 0v-3.5zm3.5 0a1.25 1.25 0 1 1 2.5 0v3.5a1.25 1.25 0 1 1-2.5 0v-3.5z"
+        d="M6.271 5.055a.5.5 0 0 1 .52.038l3.5 2.5a.5.5 0 0 1 0 .814l-3.5 2.5A.5.5 0 0 1 6 10.5v-5a.5.5 0 0 1 .271-.445z"
       />
     </svg>
-    <audio
-      id="bg-music"
-      :src="IMAGES.music"
-      autoplay
-      loop
-      preload="auto"
-    ></audio>
+
+    <audio id="bg-music" :src="IMAGES.music" loop preload="auto"></audio>
     <!-- 开始界面 -->
     <div
       v-if="!gameRunning"
       class="absolute w-full h-full flex flex-col items-center justify-center"
     >
+      <img src="/images/title.png" alt="title" class="w-full md:w-1/2" />
       <transition name="smooth-move">
         <img
           :src="IMAGES.bird"
           alt="胡得"
-          class="absolute transition-transform ease-linear h-30 left-1/2 transform -translate-x-1/2"
-          :style="{
-            top: randomTop + 'vh',
-
-            transform: `rotate(${randomLeft > 50 ? 15 : -15}deg)`,
-          }"
-          style="transition: 3s"
+          class="transition-transform ease-linear h-30 left-1/2"
         />
       </transition>
-      <div
-        class="w-[40vw] h-[15vh] bg-contain"
-        :style="{ backgroundImage: `url(${IMAGES.head})` }"
-      ></div>
       <button
         @click="startGame"
         class="mt-6 px-6 py-2 bg-[#e86101] border-2 rounded shadow cursor-pointer"
@@ -365,6 +429,10 @@ onMounted(() => {
           开始游戏
         </p>
       </button>
+      <div class="absolute bottom-5 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center text-white animate-fadeover" style="font-family: 'ChillBitmap'; -webkit-text-stroke: 1px black">
+        <p>点击屏幕</p>
+        <p>控制蝴蝶“躲避”花柱</p>
+      </div>
     </div>
 
     <!-- 游戏中 -->
@@ -426,10 +494,13 @@ onMounted(() => {
 
     <!-- 结束界面 -->
     <div
+      class="absolute w-full h-screen bg-black opacity-50 animate-fadein"
+      v-if="!gameRunning && score > 0"
+    ></div>
+    <div
       v-if="!gameRunning && score > 0 && gameOverFlag"
-      class="absolute top-1/5 w-full flex flex-col items-center"
+      class="absolute top-1/5 w-full flex flex-col items-center animate-scalein"
     >
-      <!-- 分享按钮 -->
       <div
         class="bg-contain bg-no-repeat bg-center w-full h-[60vh] flex flex-col items-center justify-center"
         :style="{ backgroundImage: `url(${IMAGES.gameOver})` }"
@@ -468,6 +539,7 @@ onMounted(() => {
             保存
           </button>
           <button
+            :disabled="!canRetry"
             @click="startGame"
             class="z-10 mt-6 px-6 py-2 bg-white rounded shadow border-2 text-[16px] cursor-pointer"
             style="font-family: 'ChillBitmap'"
@@ -476,11 +548,10 @@ onMounted(() => {
           </button>
         </div>
       </div>
-      <!-- <img :src="IMAGES.gameOver" alt="Game Over" class="absolute h-[50vh] bg-cover" /> -->
     </div>
     <div
       v-if="!gameRunning && !gameOverFlag && score > 0"
-      class="absolute top-1/5 w-full flex flex-col items-center"
+      class="absolute top-1/5 w-full flex flex-col items-center animate-scalein"
     >
       <div
         class="bg-contain bg-no-repeat bg-center w-full h-[60vh] flex flex-col items-center justify-center"
@@ -495,19 +566,20 @@ onMounted(() => {
           class="text-white text-2xl mt-4 z-10"
           style="font-family: 'ChillBitmap'"
         >
-          不小心触底啦！！
+          <!-- 您坠落在了{{ CAMPUS[segment].name }} -->
+          您坠落在了{{ getCurrentCampus().name }}
         </div>
         <div class="z-10">
           <button
             @click="startGame"
             class="z-10 mt-6 px-6 py-2 bg-white rounded shadow border-2 text-[16px] cursor-pointer"
             style="font-family: 'ChillBitmap'"
+            :disabled="!canRetry"
           >
             重试
           </button>
         </div>
       </div>
-      <!-- <img :src="IMAGES.gameOver" alt="Game Over" class="absolute h-[50vh] bg-cover" /> -->
     </div>
   </div>
 </template>
@@ -537,5 +609,41 @@ onMounted(() => {
 
 .animate-birdup {
   animation: birdup 0.1s linear infinite;
+}
+@keyframes fade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
+@keyframes scalein {
+  0% {
+    opacity: 0;
+    scale: 0.7;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+}
+@keyframes fadeover {
+  0%,100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-fadein {
+  animation: fade 0.5s forwards;
+}
+.animate-scalein {
+  animation: scalein 0.5s forwards;
+}
+.animate-fadeover {
+  animation: fadeover 2s infinite;
 }
 </style>
