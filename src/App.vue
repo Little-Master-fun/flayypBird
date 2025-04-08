@@ -6,7 +6,6 @@ const IMAGES = {
   bg: "/images/bg.png",
   bird: "/images/bird.gif",
   birdStatic: "/images/bird-static.png",
-  head: "/img/head.png",
   gameOver: "/images/gameover-bg.png",
   gameOverB: "/images/gameover-b-img.jpg",
   music: "/music/bg-music.mp3",
@@ -323,7 +322,11 @@ onMounted(() => {
   });
   PIPE_IMAGES.forEach((pip) => {
     const img = new Image();
-    img.src = pip.url;
+    img.src = pip.realurl;
+  });
+  campuses.forEach((campus) => {
+    const img = new Image();
+    img.src = campus.url;
   });
 });
 </script>
