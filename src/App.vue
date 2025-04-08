@@ -410,9 +410,9 @@ onMounted(() => {
     <!-- 开始界面 -->
     <div
       v-if="!gameRunning"
-      class="absolute w-full h-full flex flex-col items-center justify-center"
+      class="absolute w-full h-full flex flex-col items-center "
     >
-      <img src="/images/title.png" alt="title" class="w-full md:w-1/2" />
+      <img src="/images/title.png" alt="title" class="w-full md:w-1/2 mt-20" />
       <transition name="smooth-move">
         <img
           :src="IMAGES.bird"
@@ -422,7 +422,7 @@ onMounted(() => {
       </transition>
       <button
         @click="startGame"
-        class="mt-6 px-6 py-2 bg-[#e86101] border-2 rounded shadow cursor-pointer"
+        class="mt-15 px-6 py-2 bg-[#e86101] border-2 rounded shadow cursor-pointer"
       >
         <!-- <img :src="IMAGES.startBtn" alt="Start" /> -->
         <p
