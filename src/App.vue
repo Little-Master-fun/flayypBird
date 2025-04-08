@@ -67,37 +67,37 @@ const PIPE_IMAGES = [
 const CAMPUS = [
   {
     name: "中心校区",
-    url: "/images/realphotos/zhongxinxiaoqiu.jpg",
+    url: "/images/campus/zx.jpg",
   },
   {
     name: "兴隆山",
-    url: "/images/realphotos/xinglongshan.jpg",
+    url: "/images/campus/xls.jpg",
   },
   {
     name: "趵突泉",
-    url: "/images/realphotos/baotuqian.jpg",
+    url: "/images/campus/btq.jpg",
   },
   {
     name: "千佛山",
-    url: "/images/realphotos/baotuqian.jpg",
+    url: "/images/campus/qfs.jpg",
   },
   {
     name: "软件园",
-    url: "/images/realphotos/baotuqian.jpg",
+    url: "/images/campus/rjy.jpg",
   },
   {
     name: "洪家楼",
-    url: "/images/realphotos/baotuqian.jpg",
+    url: "/images/campus/hjl.jpg",
   },
 ];
 // 校区数组
 const campuses = [
-  { name: "中心校区", url: "/images/realphotos/zhongxinxiaoqiu.jpg", range: [0, 270] },
-  { name: "兴隆山校区", url: "/images/realphotos/xinglongshan.jpg", range: [271, 720] },
-  { name: "趵突泉校区", url: "/images/realphotos/baotuqian.jpg", range: [721, 1200] },
-  { name: "千佛山校区", url: "/images/realphotos/qianfushan.jpg", range: [1201, 1800] },
-  { name: "软件园校区", url: "/images/realphotos/ruanjianyuan.jpg", range: [1801, 2300] },
-  { name: "洪家楼校区", url: "/images/realphotos/hongjialou.jpg", range: [2301, 2700] },
+  { name: "中心校区", url: "/images/campus/zx.jpg", range: [0, 270] },
+  { name: "兴隆山校区", url: "/images/campus/xls.jpg", range: [271, 720] },
+  { name: "趵突泉校区", url: "/images/campus/btq.jpg", range: [721, 1200] },
+  { name: "千佛山校区", url: "/images/campus/qfs.jpg", range: [1201, 1800] },
+  { name: "软件园校区", url: "/images/campus/rjy.jpg", range: [1801, 2300] },
+  { name: "洪家楼校区", url: "/images/campus/hjl.jpg", range: [2301, 2700] },
 ];
 
 // 根据 bgDis 判断当前校区
@@ -108,7 +108,7 @@ const getCurrentCampus = () => {
       return campus;
     }
   }
-  return campuses[1]; // 如果不在任何范围内，返回 null
+  return campuses[0]; // 如果不在任何范围内，返回第一个校区
 };
 // 游戏状态
 const bgDis = ref(0);
@@ -558,9 +558,11 @@ onMounted(() => {
         :style="{ backgroundImage: `url(${IMAGES.gameOver})` }"
       >
         <img
-          :src="IMAGES.gameOverB"
+          :src="getCurrentCampus().url"
           alt="realimg"
           class="mt-1 z-10 h-1/3 rounded-md border-4 border-[#543847]"
+          id="flower"
+          :name="getCurrentCampus().name"
         />
         <div
           class="text-white text-2xl mt-4 z-10"
@@ -569,7 +571,15 @@ onMounted(() => {
           <!-- 您坠落在了{{ CAMPUS[segment].name }} -->
           您坠落在了{{ getCurrentCampus().name }}
         </div>
-        <div class="z-10">
+        <div class="z-10 mt-10">
+          <button
+            @click="saveImg"
+            class="z-10 mt-6 mr-6 px-6 py-2 bg-white rounded shadow border-2 text-[16px] cursor-pointer"
+            style="font-family: 'ChillBitmap'"
+          >
+            保存
+          </button>
+
           <button
             @click="startGame"
             class="z-10 mt-6 px-6 py-2 bg-white rounded shadow border-2 text-[16px] cursor-pointer"
