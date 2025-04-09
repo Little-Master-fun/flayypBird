@@ -410,10 +410,10 @@ onMounted(() => {
     <!-- 开始界面 -->
     <div
       v-if="!gameRunning"
-      class="absolute w-full h-full flex flex-col items-center "
+      class="absolute w-full h-full flex flex-col items-center bg-[url('/images/bg(1).png')] bg-cover bg-no-repeat bg-center"
     >
       <img src="/images/onlinelogo.png" alt="OnlineIcon" class="absolute w-30 left-1 top-0" />
-      <img src="/images/title.png" alt="title" class="w-2/3 md:w-1/2 mt-20 mb-20" />
+      <img src="/images/title.png" alt="title" class="w-2/3 md:w-1/2 mt-30 mb-10 " />
       <transition name="smooth-move">
         <img
           :src="IMAGES.bird"
