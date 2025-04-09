@@ -412,6 +412,7 @@ onMounted(() => {
       v-if="!gameRunning"
       class="absolute w-full h-full flex flex-col items-center "
     >
+      <img src="/images/onlinelogo.png" alt="OnlineIcon" class="absolute w-30 left-2 top-2" />
       <img src="/images/title.png" alt="title" class="w-full md:w-1/2 mt-20" />
       <transition name="smooth-move">
         <img
