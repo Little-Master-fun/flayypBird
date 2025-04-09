@@ -268,7 +268,7 @@ const shareInfo = () => {
   const shareData = {
     title: "Flappy Bird",
     text:
-      "我在趣味游戏《蝴蝶菲菲》中挑战自我，获得了 " +
+      "我在趣味游戏《山大春日飞行》中挑战自我，获得了 " +
       bestScore +
       " 分！🎮\n快来试试你的实力吧👇👇\nhttps://flappybird.0linetekcenter.tech/",
     url: window.location.href,
