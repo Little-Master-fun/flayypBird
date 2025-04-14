@@ -4,7 +4,7 @@ import axios from "axios";
 
 // 图片资源
 const IMAGES = {
-  bg: "/images/bg.png",
+  bg: "/images/bg.jpeg",
   bird: "/images/bird.gif",
   birdStatic: "/images/bird-static.png",
   gameOver: "/images/gameover-bg.png",
@@ -92,12 +92,14 @@ const CAMPUS = [
 ];
 // 校区数组
 const campuses = [
-  { name: "中心校区", url: "/images/campus/zx.jpg", range: [0, 270] },
-  { name: "兴隆山校区", url: "/images/campus/xls.jpg", range: [271, 720] },
-  { name: "趵突泉校区", url: "/images/campus/btq.jpg", range: [721, 1200] },
-  { name: "千佛山校区", url: "/images/campus/qfs.jpg", range: [1201, 1800] },
-  { name: "软件园校区", url: "/images/campus/rjy.jpg", range: [1801, 2300] },
-  { name: "洪家楼校区", url: "/images/campus/hjl.jpg", range: [2301, 2700] },
+  { name: "中心校区", url: "/images/campus/zx.jpg", range: [0, 235] },
+  { name: "兴隆山校区", url: "/images/campus/xls.jpg", range: [236, 508] },
+  { name: "趵突泉校区", url: "/images/campus/btq.jpg", range: [509, 817] },
+  { name: "洪家楼校区", url: "/images/campus/hjl.jpg", range: [1585, 1935] },
+  { name: "千佛山校区", url: "/images/campus/qfs.jpg", range: [818, 1151] },
+  { name: "软件园校区", url: "/images/campus/rjy.jpg", range: [1152, 1584] },
+  { name: "青岛校区", url: "/images/campus/hjl.jpg", range: [1936, 2094] },
+  { name: "威海校区", url: "/images/campus/hjl.jpg", range: [2094, 2250] },
 ];
 
 const rank = ref<
@@ -113,7 +115,7 @@ const getCurrentCampus = () => {
   const absoluteBgDis = Math.abs(bgDis.value); // 取绝对值
   for (const campus of campuses) {
     if (
-      absoluteBgDis % 3000 >= campus.range[0] &&
+      absoluteBgDis % 2250 >= campus.range[0] &&
       absoluteBgDis <= campus.range[1]
     ) {
       return campus;
@@ -161,8 +163,8 @@ const pipes = ref<
     img: { name: string; url: string; realurl: string; position: string };
   }[]
 >([]);
-const space = 100;
-const gap = 23; // vh单位，保持比例一致
+const space = ref(100);
+const gap = ref(23); // vh单位，保持比例一致
 let count = 0;
 let timer: ReturnType<typeof setInterval> | null = null;
 
@@ -247,7 +249,7 @@ const jump = () => {
 // 管道移动和生成
 const pipeMove = () => {
   count++;
-  if (count === space) {
+  if (count === space.value) {
     count = 0;
     const pipeHeight = Math.floor(Math.random() * 30) + 20; // 20-50vh
     const randomPipe =
@@ -262,7 +264,7 @@ const pipeMove = () => {
 const checkCollision = () => {
   for (const pipe of pipes.value) {
     if (pipe.left < 6 && pipe.left + 5 > 2) {
-      if (birdTop.value < pipe.height || birdTop.value > pipe.height + gap) {
+      if (birdTop.value < pipe.height || birdTop.value > pipe.height + gap.value) {
         gameOverFlag.value = pipe.img;
         gameOver(`撞上了 ${pipe.img.name}`);
         return;
@@ -270,6 +272,15 @@ const checkCollision = () => {
     }
     if (pipe.left == -15) {
       score.value++;
+      if (score.value % 5 === 0) {
+        // 每5分增加一次管道速度
+        space.value = Math.max(55, space.value - 10);
+        console.log(space.value);
+        
+        // console.log("管道速度增加");
+        gap.value = Math.max(15.5, gap.value - 2);
+        
+      }
     }
   }
 };
@@ -347,11 +358,13 @@ onMounted(() => {
   document.addEventListener("click", jump);
   //初始化音乐按钮
   const audio = document.getElementById("bg-music") as HTMLAudioElement;
-  if (audio && audio.paused) {
-    videoPlaying.value = false;
-    console.log("音乐未播放");
-    console.log(videoPlaying.value);
-  }
+  setTimeout(() => {
+    if (audio && audio.paused) {
+      playMusic();
+      console.log("音乐未播放");
+      console.log(videoPlaying.value);
+    }
+  }, 1000);
   //预加载静态资源
   // const imageElements = Object.values(IMAGES).filter(
   //   (url) =>
@@ -420,7 +433,7 @@ onMounted(() => {
       class="bi bi-pause-circle absolute right-2 top-2 cursor-pointer z-10"
       viewBox="0 0 16 16"
       @click="playMusic"
-      v-if="videoPlaying"
+      v-if="!videoPlaying"
     >
       <path
         d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"
@@ -447,7 +460,13 @@ onMounted(() => {
       />
     </svg>
 
-    <audio id="bg-music" :src="IMAGES.music" loop preload="auto"></audio>
+    <audio
+      id="bg-music"
+      :src="IMAGES.music"
+      loop
+      autoplay
+      preload="auto"
+    ></audio>
     <!-- 排行榜 -->
     <div
       class="bg- w-full h-screen flex flex-col items-center animate-fadein-r"
@@ -626,8 +645,8 @@ onMounted(() => {
       class="absolute w-full h-screen bg-black opacity-50 animate-fadein"
       v-if="!gameRunning && score > 0"
     >
-          <!-- 返回箭头 -->
-          <svg
+      <!-- 返回箭头 -->
+      <svg
         xmlns="http://www.w3.org/2000/svg"
         width="24"
         height="24"
@@ -641,8 +660,7 @@ onMounted(() => {
           d="M11.3 1.3a1 1 0 0 1 0 1.4L5.4 8l5.9 5.3a1 1 0 0 1-1.4 1.4l-7-6.3a1 1 0 0 1 0-1.4l7-6.3a1 1 0 0 1 1.4 0z"
         />
       </svg>
-
-  </div>
+    </div>
     <div
       v-if="!gameRunning && score > 0 && gameOverFlag"
       class="absolute top-1/5 w-full flex flex-col items-center animate-scalein"
