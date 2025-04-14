@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import axios from "axios";
 
 // 图片资源
 const IMAGES = {
@@ -59,7 +60,7 @@ const PIPE_IMAGES = [
     name: "山樱花",
     url: "/images/pipe/syh.png",
     realurl: "/images/realphotos/syh.jpg",
-    position: "兴隆山校区",
+    position: "软件园校区",
   },
 ];
 
@@ -99,11 +100,22 @@ const campuses = [
   { name: "洪家楼校区", url: "/images/campus/hjl.jpg", range: [2301, 2700] },
 ];
 
+const rank = ref<
+  Array<{
+    rank: number;
+    name: string;
+    score: number;
+  }>
+>([]);
+
 // 根据 bgDis 判断当前校区
 const getCurrentCampus = () => {
   const absoluteBgDis = Math.abs(bgDis.value); // 取绝对值
   for (const campus of campuses) {
-    if (absoluteBgDis % 3000 >= campus.range[0] && absoluteBgDis <= campus.range[1]) {
+    if (
+      absoluteBgDis % 3000 >= campus.range[0] &&
+      absoluteBgDis <= campus.range[1]
+    ) {
       return campus;
     }
   }
@@ -115,6 +127,7 @@ const speed = ref(0);
 const isDown = ref(true);
 const score = ref(0);
 const gameRunning = ref(false);
+const rankShow = ref(false);
 const gameOverFlag = ref<{
   name: string;
   url: string;
@@ -129,6 +142,11 @@ const randomLeft = ref(50);
 const canRetry = ref(false);
 // 蝴蝶水平位置
 const segment = ref(0);
+const userRank = ref<{
+  rank: number;
+  name: string;
+  score: number;
+} | null>(null);
 
 setInterval(() => {
   randomTop.value = Math.floor(Math.random() * 50); // Update randomTop every second
@@ -167,6 +185,15 @@ const startGame = () => {
     checkCollision();
   }, 30);
 };
+// 显示排行榜
+const showRank = async () => {
+  rank.value = (await axios.get("api/leaderboard")).data;
+  userRank.value = (await axios.get("api/player")).data;
+  console.log(userRank.value);
+
+  // rank.value = (await (axios.get("https://flappybird.0linetekcenter.tech/api/leaderboard"))).data;
+  rankShow.value = true;
+};
 
 // 结束游戏
 const gameOver = (message: string) => {
@@ -177,6 +204,19 @@ const gameOver = (message: string) => {
   if (timer) clearInterval(timer);
   if (localStorage.best === undefined || +localStorage.best < score.value) {
     localStorage.best = score.value;
+    axios
+      .post(
+        "api/score",
+        { score: score.value },
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        }
+      )
+      .then((res) => {
+        console.log(res.data);
+      });
   }
 };
 
@@ -185,7 +225,7 @@ const birdMove = () => {
   if (birdTop.value < 0 || birdTop.value > 90) {
     segment.value = Math.floor(Math.abs(bgDis.value) / 450) + 1;
     console.log(bgDis.value);
-    
+
     gameOver("触底了！");
     return;
   }
@@ -265,11 +305,12 @@ const playMusic = () => {
 
 // 分享功能
 const shareInfo = () => {
+  const score = localStorage.getItem("best") || 0;
   const shareData = {
     title: "Flappy Bird",
     text:
       "我在趣味游戏《山大春日飞行》中挑战自我，获得了 " +
-      bestScore +
+      score +
       " 分！🎮\n快来试试你的实力吧👇👇\nhttps://flappybird.0linetekcenter.tech/",
     url: window.location.href,
   };
@@ -312,22 +353,22 @@ onMounted(() => {
     console.log(videoPlaying.value);
   }
   //预加载静态资源
-  const imageElements = Object.values(IMAGES).filter(
-    (url) =>
-      url.endsWith(".png") || url.endsWith(".jpg") || url.endsWith(".gif")
-  );
-  imageElements.forEach((url) => {
-    const img = new Image();
-    img.src = url;
-  });
-  PIPE_IMAGES.forEach((pip) => {
-    const img = new Image();
-    img.src = pip.realurl;
-  });
-  campuses.forEach((campus) => {
-    const img = new Image();
-    img.src = campus.url;
-  });
+  // const imageElements = Object.values(IMAGES).filter(
+  //   (url) =>
+  //     url.endsWith(".png") || url.endsWith(".jpg") || url.endsWith(".gif")
+  // );
+  // imageElements.forEach((url) => {
+  //   const img = new Image();
+  //   img.src = url;
+  // });
+  // PIPE_IMAGES.forEach((pip) => {
+  //   const img = new Image();
+  //   img.src = pip.realurl;
+  // });
+  // campuses.forEach((campus) => {
+  //   const img = new Image();
+  //   img.src = campus.url;
+  // });
 });
 </script>
 <template>
@@ -407,23 +448,93 @@ onMounted(() => {
     </svg>
 
     <audio id="bg-music" :src="IMAGES.music" loop preload="auto"></audio>
+    <!-- 排行榜 -->
+    <div
+      class="bg- w-full h-screen flex flex-col items-center animate-fadein-r"
+      v-if="rankShow"
+    >
+      <!-- 返回箭头 -->
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        fill="white"
+        class="bi bi-arrow-left absolute left-2 top-2 cursor-pointer z-20"
+        viewBox="0 0 16 16"
+        @click="rankShow = false"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M11.3 1.3a1 1 0 0 1 0 1.4L5.4 8l5.9 5.3a1 1 0 0 1-1.4 1.4l-7-6.3a1 1 0 0 1 0-1.4l7-6.3a1 1 0 0 1 1.4 0z"
+        />
+      </svg>
+      <img src="/images/campus.png" alt="奖杯" class="w-2/3 md:w-1/2 mb-10" />
+      <div
+        class="overflow-y-auto h-[60vh] w-[80vw] bg-[#F4E7D5] rounded-lg"
+        style="font-family: 'ChillBitmap'"
+      >
+        <div class="w-full h-[52vh] overflow-y-auto relative">
+          <table class="w-full text-center">
+            <thead>
+              <tr>
+                <th class="p-2">排名</th>
+                <th class="p-2">姓名</th>
+                <th class="p-2">分数</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(item, index) in rank"
+                :key="index"
+                :class="{ 'bg-[#e8cdab]': item.rank === userRank?.rank }"
+              >
+                <td class="p-2">{{ index + 1 }}</td>
+                <td class="p-2">{{ item.name }}</td>
+                <td class="p-2">{{ item.score }}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td></td>
+                <td class="pt-2">当前只展示前30名哦~</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="bg-[#e8cdab] h-[8vh] flex items-center justify-around">
+          <p>{{ userRank && userRank.rank !== null ? userRank.rank : "无" }}</p>
+          <p>{{ userRank?.name }}</p>
+          <p>{{ userRank?.score }}</p>
+        </div>
+      </div>
+    </div>
+
     <!-- 开始界面 -->
     <div
       v-if="!gameRunning"
-      class="absolute w-full h-full flex flex-col items-center bg-[url('/images/bg(1).png')] bg-cover bg-no-repeat bg-center"
+      class="absolute w-full h-full flex flex-col items-center bg-[url('/images/bg_1.png')] bg-cover bg-no-repeat bg-center"
     >
-      <img src="/images/onlinelogo.png" alt="OnlineIcon" class="absolute w-30 left-1 top-0" />
-      <img src="/images/title.png" alt="title" class="w-2/3 md:w-1/2 mt-30 mb-10 " />
+      <img
+        src="/images/onlinelogo.png"
+        alt="OnlineIcon"
+        class="absolute w-30 left-1 top-0"
+      />
+      <img
+        src="/images/title.png"
+        alt="title"
+        class="w-2/3 md:w-1/2 mt-30 mb-10"
+      />
       <transition name="smooth-move">
         <img
           :src="IMAGES.bird"
           alt="蝴蝶"
-          class="transition-transform ease-linear h-30 left-1/2  box"
+          class="transition-transform ease-linear h-30 left-1/2 box"
         />
       </transition>
       <button
         @click="startGame"
-        class="mt-15 px-6 py-2 bg-[#e86101] border-2 rounded shadow cursor-pointer"
+        class="mt-10 px-6 py-2 bg-[#e86101] border-2 rounded shadow cursor-pointer w-[150px]"
       >
         <!-- <img :src="IMAGES.startBtn" alt="Start" /> -->
         <p
@@ -433,12 +544,26 @@ onMounted(() => {
           开始游戏
         </p>
       </button>
-      <div class="absolute bottom-5 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center text-white animate-fadeover" style="font-family: 'ChillBitmap'; -webkit-text-stroke: 1px black">
+      <button
+        @click="showRank"
+        class="mt-5 px-6 py-2 bg-[#e86101] border-2 rounded shadow cursor-pointer w-[150px]"
+      >
+        <!-- <img :src="IMAGES.startBtn" alt="Start" /> -->
+        <p
+          style="font-family: 'ChillBitmap'; -webkit-text-stroke: 1px black"
+          class="text-white text-2xl font-mibold"
+        >
+          排行榜
+        </p>
+      </button>
+      <div
+        class="absolute bottom-5 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center text-white animate-fadeover"
+        style="font-family: 'ChillBitmap'; -webkit-text-stroke: 1px black"
+      >
         <p>点击屏幕</p>
         <p>控制蝴蝶“躲避”花柱</p>
       </div>
     </div>
-
     <!-- 游戏中 -->
     <div v-else>
       <!-- 计分 -->
@@ -500,7 +625,24 @@ onMounted(() => {
     <div
       class="absolute w-full h-screen bg-black opacity-50 animate-fadein"
       v-if="!gameRunning && score > 0"
-    ></div>
+    >
+          <!-- 返回箭头 -->
+          <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        fill="white"
+        class="bi bi-arrow-left absolute left-2 top-2 cursor-pointer z-20"
+        viewBox="0 0 16 16"
+        @click="score = 0"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M11.3 1.3a1 1 0 0 1 0 1.4L5.4 8l5.9 5.3a1 1 0 0 1-1.4 1.4l-7-6.3a1 1 0 0 1 0-1.4l7-6.3a1 1 0 0 1 1.4 0z"
+        />
+      </svg>
+
+  </div>
     <div
       v-if="!gameRunning && score > 0 && gameOverFlag"
       class="absolute top-1/5 w-full flex flex-col items-center animate-scalein"
@@ -632,6 +774,14 @@ onMounted(() => {
     opacity: 0.7;
   }
 }
+@keyframes fadein {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
 @keyframes scalein {
   0% {
     opacity: 0;
@@ -643,7 +793,8 @@ onMounted(() => {
   }
 }
 @keyframes fadeover {
-  0%,100% {
+  0%,
+  100% {
     opacity: 0;
   }
   50% {
@@ -653,6 +804,9 @@ onMounted(() => {
 
 .animate-fadein {
   animation: fade 0.5s forwards;
+}
+.animate-fadein-r {
+  animation: fadein 0.5s forwards;
 }
 .animate-scalein {
   animation: scalein 0.5s forwards;
