@@ -4,7 +4,7 @@ import axios from "axios";
 
 // 图片资源
 const IMAGES = {
-  bg: "/images/bg.jpeg",
+  bg: "/images/bg.png",
   bird: "/images/bird.gif",
   birdStatic: "/images/bird-static.png",
   gameOver: "/images/gameover-bg.png",
@@ -45,6 +45,24 @@ const PIPE_IMAGES = [
     position: "兴隆山校区",
   },
   {
+    name: "海棠",
+    url: "/images/pipe/ht.png",
+    realurl: "/images/realphotos/ht-1.jpg",
+    position: "千佛山校区",
+  },
+  {
+    name: "海棠",
+    url: "/images/pipe/ht.png",
+    realurl: "/images/realphotos/ht-2.jpg",
+    position: "洪家楼校区",
+  },
+  {
+    name: "海棠",
+    url: "/images/pipe/ht.png",
+    realurl: "/images/realphotos/ht-3.jpg",
+    position: "洪家楼校区",
+  },
+  {
     name: "鸢尾",
     url: "/images/pipe/yw.png",
     realurl: "/images/realphotos/yw.jpg",
@@ -61,6 +79,12 @@ const PIPE_IMAGES = [
     url: "/images/pipe/syh.png",
     realurl: "/images/realphotos/syh.jpg",
     position: "软件园校区",
+  },
+  {
+    name: "山樱花",
+    url: "/images/pipe/syh.png",
+    realurl: "/images/realphotos/syh-1.jpg",
+    position: "洪家楼校区",
   },
   {
     name: "樱花",
@@ -80,14 +104,26 @@ const PIPE_IMAGES = [
     realurl: "/images/realphotos/yh-3.jpg",
     position: "软件园校区",
   },
+  {
+    name: "郁金香",
+    url: "/images/pipe/yjx.png",
+    realurl: "/images/realphotos/yjx.jpg",
+    position: "威海校区",
+  },
+  {
+    name: "迎春",
+    url: "/images/pipe/yc.png",
+    realurl: "/images/realphotos/yc.jpg",
+    position: "青岛校区",
+  },
 ];
 
 // 校区数组
 const campuses = [
   { name: "中心校区", url: ["/images/campus/zx.jpg"], range: [0, 260] },
-  { name: "洪家楼校区", url: ["/images/campus/xls.jpg"], range: [261, 720] },
-  { name: "兴隆山校区", url: ["/images/campus/btq.jpg"], range: [721, 1160] },
-  { name: "趵突泉校区", url: ["/images/campus/hjl.jpg"], range: [1161, 1630] },
+  { name: "洪家楼校区", url: ["/images/campus/hjl.jpg"], range: [261, 720] },
+  { name: "兴隆山校区", url: ["/images/campus/xls.jpg"], range: [721, 1160] },
+  { name: "趵突泉校区", url: ["/images/campus/btq.jpg"], range: [1161, 1630] },
   { name: "千佛山校区", url: ["/images/campus/qfs.jpg"], range: [1631, 2318] },
   { name: "软件园校区", url: ["/images/campus/rjy.jpg"], range: [2319, 2830] },
   { name: "青岛校区", url: ["/images/campus/qd-1.jpg","/images/campus/qd-2.jpg"], range: [2831, 3050] },
@@ -191,7 +227,7 @@ const showRank = async () => {
   rank.value = (await axios.get("api/leaderboard")).data;
   userRank.value = (await axios.get("api/player")).data;
   console.log(userRank.value);
-
+  // userRank.value = (await axios.get("https://flappybird.0linetekcenter.tech/api/player")).data;
   // rank.value = (await (axios.get("https://flappybird.0linetekcenter.tech/api/leaderboard"))).data;
   rankShow.value = true;
 };
@@ -277,7 +313,7 @@ const checkCollision = () => {
         console.log(space.value);
         
         // console.log("管道速度增加");
-        gap.value = Math.max(15.5, gap.value - 2);
+        gap.value = Math.max(18.5, gap.value - 1);
         
       }
     }
@@ -623,13 +659,13 @@ onMounted(() => {
           :style="{
             backgroundImage: `url(${pipe.img.url})`,
             height: '60vh',
-            transform: `translateY(${pipe.height - 60}vh) scaleY(-1)`,
+            transform: `translateY(${pipe.height - 60}vh) scaleY(-1)`,            
           }"
         ></div>
 
         <!-- 下管道 -->
         <div
-          class="bg-no-repeat bg-cover w-full bg-center absolute"
+          class="bg-no-repeat bg-cover w-full bg-center absolute "
           :style="{
             backgroundImage: `url(${pipe.img.url})`,
             height: '60vh',
@@ -732,7 +768,7 @@ onMounted(() => {
           style="font-family: 'ChillBitmap'"
         >
           <!-- 您坠落在了{{ CAMPUS[segment].name }} -->
-          您坠落在了{{ getCurrentCampus().name }}
+          您降落在了{{ getCurrentCampus().name }}
         </div>
         <div class="z-10 mt-10">
           <button
