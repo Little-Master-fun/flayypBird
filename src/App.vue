@@ -17,69 +17,81 @@ const PIPE_IMAGES = [
   {
     name: "野蔷薇",
     url: "/images/pipe/yqw.png",
-    realurl: ["/images/realphotos/yqw.jpg"],
+    realurl: "/images/realphotos/yqw.jpg",
     position: "趵突泉校区",
   },
   {
     name: "大岛樱",
     url: "/images/pipe/ddy.png",
-    realurl: ["/images/realphotos/ddy.jpg"],
+    realurl: "/images/realphotos/ddy.jpg",
     position: "兴隆山校区",
   },
   {
     name: "紫丁香",
     url: "/images/pipe/zdx.png",
-    realurl: ["/images/realphotos/zdx.JPG"],
+    realurl: "/images/realphotos/zdx.JPG",
     position: "兴隆山校区",
   },
   {
     name: "玉兰",
     url: "/images/pipe/yl.png",
-    realurl: ["/images/realphotos/yl.jpg"],
+    realurl: "/images/realphotos/yl.jpg",
     position: "中心校区",
   },
   {
     name: "海棠",
     url: "/images/pipe/ht.png",
-    realurl: ["/images/realphotos/ht.jpg"],
+    realurl: "/images/realphotos/ht.jpg",
     position: "兴隆山校区",
   },
   {
     name: "鸢尾",
     url: "/images/pipe/yw.png",
-    realurl: ["/images/realphotos/yw.jpg"],
+    realurl: "/images/realphotos/yw.jpg",
     position: "趵突泉校区",
   },
   {
     name: "美人梅",
     url: "/images/pipe/mrm.png",
-    realurl: ["/images/realphotos/mrm.jpg"],
+    realurl: "/images/realphotos/mrm.jpg",
     position: "趵突泉校区",
   },
   {
     name: "山樱花",
     url: "/images/pipe/syh.png",
-    realurl: ["/images/realphotos/syh.jpg"],
+    realurl: "/images/realphotos/syh.jpg",
     position: "软件园校区",
   },
   {
     name: "樱花",
     url: "/images/pipe/syh.png",
-    realurl: ["/images/realphotos/yh-1.jpg", "/images/realphotos/yh-2.jpg", "/images/realphotos/yh-3.jpg", "/images/realphotos/yh-4.jpg"],
+    realurl: "/images/realphotos/yh-1.jpg",
+    position: "软件园校区",
+  },
+  {
+    name: "樱花",
+    url: "/images/pipe/syh.png",
+    realurl: "/images/realphotos/yh-2.jpg",
+    position: "软件园校区",
+  },
+  {
+    name: "樱花",
+    url: "/images/pipe/syh.png",
+    realurl: "/images/realphotos/yh-3.jpg",
     position: "软件园校区",
   },
 ];
 
 // 校区数组
 const campuses = [
-  { name: "中心校区", url: ["/images/campus/zx.jpg"], range: [0, 235] },
-  { name: "洪家楼校区", url: ["/images/campus/xls.jpg"], range: [236, 508] },
-  { name: "兴隆山校区", url: ["/images/campus/btq.jpg"], range: [509, 817] },
-  { name: "趵突泉校区", url: ["/images/campus/hjl.jpg"], range: [1585, 1935] },
-  { name: "千佛山校区", url: ["/images/campus/qfs.jpg"], range: [818, 1151] },
-  { name: "软件园校区", url: ["/images/campus/rjy.jpg"], range: [1152, 1584] },
-  { name: "青岛校区", url: ["/images/campus/qd-1.jpg","/images/campus/qd-2.jpg"], range: [1936, 2094] },
-  { name: "威海校区", url: ["/images/campus/wh-1.jpg","/images/campus/wh-2.jpg","/images/campus/wh-3.jpg"], range: [2094, 2250] },
+  { name: "中心校区", url: ["/images/campus/zx.jpg"], range: [0, 260] },
+  { name: "洪家楼校区", url: ["/images/campus/xls.jpg"], range: [261, 720] },
+  { name: "兴隆山校区", url: ["/images/campus/btq.jpg"], range: [721, 1160] },
+  { name: "趵突泉校区", url: ["/images/campus/hjl.jpg"], range: [1161, 1630] },
+  { name: "千佛山校区", url: ["/images/campus/qfs.jpg"], range: [1631, 2318] },
+  { name: "软件园校区", url: ["/images/campus/rjy.jpg"], range: [2319, 2830] },
+  { name: "青岛校区", url: ["/images/campus/qd-1.jpg","/images/campus/qd-2.jpg"], range: [2831, 3050] },
+  { name: "威海校区", url: ["/images/campus/wh-1.jpg","/images/campus/wh-2.jpg","/images/campus/wh-3.jpg"], range: [3051, 3340] },
 ];
 
 const getRandomIndex = (arr: any[]) => {
@@ -118,7 +130,7 @@ const rankShow = ref(false);
 const gameOverFlag = ref<{
   name: string;
   url: string;
-  realurl: string[];
+  realurl: string;
   position: string;
 } | null>(null);
 const bestScore = localStorage.getItem("best") || "无";
@@ -145,7 +157,7 @@ const pipes = ref<
   {
     height: number;
     left: number;
-    img: { name: string; url: string; realurl: string[]; position: string };
+    img: { name: string; url: string; realurl: string; position: string };
   }[]
 >([]);
 const space = ref(100);
@@ -156,6 +168,8 @@ let timer: ReturnType<typeof setInterval> | null = null;
 // 开始游戏
 const startGame = () => {
   gameRunning.value = true;
+  space.value = 100;
+  gap.value = 23;
   birdTop.value = 25;
   score.value = 0;
   speed.value = 0;
@@ -655,7 +669,7 @@ onMounted(() => {
         :style="{ backgroundImage: `url(${IMAGES.gameOver})` }"
       >
         <img
-          :src="getRandomIndex(gameOverFlag?.realurl)"
+          :src="gameOverFlag?.realurl"
           alt="realimg"
           class="mt-1 z-10 h-1/3 rounded-md border-4 border-[#543847]"
           id="flower"
