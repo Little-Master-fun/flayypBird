@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import axios from "axios";
+import { sendScore, verifyDataHash } from '@/utils/crypto'
 
 // 图片资源
 const IMAGES = {
@@ -120,21 +121,43 @@ const PIPE_IMAGES = [
 
 // 校区数组
 const campuses = [
-  { name: "中心校区", url: ["/images/campus/zx.jpg"], range: [0, 260] },
-  { name: "洪家楼校区", url: ["/images/campus/hjl.jpg"], range: [261, 720] },
-  { name: "兴隆山校区", url: ["/images/campus/xls.jpg"], range: [721, 1160] },
-  { name: "趵突泉校区", url: ["/images/campus/btq.jpg"], range: [1161, 1630] },
-  { name: "千佛山校区", url: ["/images/campus/qfs.jpg"], range: [1631, 2318] },
-  { name: "软件园校区", url: ["/images/campus/rjy.jpg"], range: [2319, 2830] },
-  { name: "青岛校区", url: ["/images/campus/qd-1.jpg","/images/campus/qd-2.jpg"], range: [2831, 3050] },
-  { name: "威海校区", url: ["/images/campus/wh-1.jpg","/images/campus/wh-2.jpg","/images/campus/wh-3.jpg"], range: [3051, 3340] },
+  { name: "中心校区", url: ["/images/campus/zx.jpg"], range: [0, 9.12] },
+  { name: "洪家楼校区", url: ["/images/campus/hjl.jpg"], range: [9.13, 20.60] },
+  { name: "兴隆山校区", url: ["/images/campus/xls.jpg"], range: [20.61, 34.20] },
+  { name: "趵突泉校区", url: ["/images/campus/btq.jpg"], range: [34.21, 50.00] },
+  { name: "千佛山校区", url: ["/images/campus/qfs.jpg"], range: [50.01, 68.34] },
+  { name: "软件园校区", url: ["/images/campus/rjy.jpg"], range: [68.35, 84.00] },
+  {
+    name: "威海校区",
+    url: ["/images/campus/wh-1.jpg"],
+    range: [84.01, 90.65],
+  },
+  {
+    name: "青岛校区",
+    url: [
+      "/images/campus/qd-1.jpg"
+      // "/images/campus/wh-2.jpg",
+      // "/images/campus/wh-3.jpg",
+    ],
+    range: [90.65, 100]
+  },
 ];
 
-const getRandomIndex = (arr: any[]) => {
-  if (arr.length === 0) return -1; // Return -1 if the array is empty
-  return arr[Math.floor(Math.random() * arr.length)];
+
+
+const calculateBackgroundWidth = () => {
+  const screenHeight = window.innerHeight; // 获取设备屏幕的高
+  const aspectRatio = 2250 / 500; // 背景图片的宽高比
+  const backgroundWidth = screenHeight * aspectRatio; // 根据屏幕高度计算背景图片的宽度
+  return backgroundWidth;
 };
 
+const bgWidth = calculateBackgroundWidth();
+
+const getRandomIndex = <T>(arr: T[]): T | undefined => {
+  if (arr.length === 0) return undefined;
+  return arr[Math.floor(Math.random() * arr.length)];
+};
 const rank = ref<
   Array<{
     rank: number;
@@ -145,16 +168,16 @@ const rank = ref<
 
 // 根据 bgDis 判断当前校区
 const getCurrentCampus = () => {
-  const absoluteBgDis = Math.abs(bgDis.value); // 取绝对值
+
+  const modDis = Math.abs(bgDis.value) % bgWidth; // 统一模值，用于循环滚动匹配
   for (const campus of campuses) {
-    if (
-      absoluteBgDis % 2250 >= campus.range[0] &&
-      absoluteBgDis <= campus.range[1]
-    ) {
+    if (modDis / bgWidth * 100 >= campus.range[0] && modDis / bgWidth * 100 <= campus.range[1]) {
+      console.log(modDis / bgWidth * 100);
+      
       return campus;
     }
   }
-  return campuses[0]; // 如果不在任何范围内，返回第一个校区
+  return campuses[0]; // fallback
 };
 // 游戏状态
 const bgDis = ref(0);
@@ -169,7 +192,7 @@ const gameOverFlag = ref<{
   realurl: string;
   position: string;
 } | null>(null);
-const bestScore = localStorage.getItem("best") || "无";
+const bestScore = ref(localStorage.getItem("bestScore") || "无");
 const videoPlaying = ref(false);
 // 开始界面的随机移动
 const randomTop = ref(0);
@@ -180,11 +203,53 @@ const segment = ref(0);
 const userRank = ref<{
   rank: number;
   name: string;
+  id: string;
   score: number;
+  session: string;
 } | null>(null);
+const prizes = ["帆布包", "手机支架"];
+const userPrize = ref<string | null>(null);
+const rankStatus = ref(true);
+const board = ref(true);
+// 排行榜状态
+axios
+  .get("/api//b3a5f6426379443ebf9322a0a3040215/leaderboard_status")
+  .then((response) => {
+    rankStatus.value = response.data;
+  });
+axios.get("api/player").then((response) => {
+  userRank.value = response.data;
+});
+
+const getUserRank = async () => {
+  // const res = (await axios.get("api/player")).data;
+  // console.log(await verifyDataHash(res.data, res.hash));
+  
+  
+  // if (await verifyDataHash(res.data, res.hash)) {
+  //   userRank.value = res.data.data;
+  //   console.log("finish");
+    
+  // }
+  userRank.value = (await axios.get("api/player")).data.data;
+  
+};
+
+const getPrize = async() => {
+  getUserRank();
+  if (userRank.value && userRank.value.rank <= 5) {
+    userPrize.value = prizes[0];
+  } else if (userRank.value && userRank.value.rank <= 30) {
+    userPrize.value = prizes[1];
+  } else {
+    userPrize.value = null;
+  }
+};
+
+
 
 setInterval(() => {
-  randomTop.value = Math.floor(Math.random() * 50); // Update randomTop every second
+  randomTop.value = Math.floor(Math.random() * 50); 
 }, 1000);
 
 // 蝴蝶位置
@@ -224,44 +289,52 @@ const startGame = () => {
 };
 // 显示排行榜
 const showRank = async () => {
-  rank.value = (await axios.get("api/leaderboard")).data;
-  userRank.value = (await axios.get("api/player")).data;
-  console.log(userRank.value);
+  rank.value = (await axios.get("api/leaderboard")).data.data;  
+  getUserRank();
+  
   // userRank.value = (await axios.get("https://flappybird.0linetekcenter.tech/api/player")).data;
   // rank.value = (await (axios.get("https://flappybird.0linetekcenter.tech/api/leaderboard"))).data;
   rankShow.value = true;
 };
 
 // 结束游戏
-const gameOver = (message: string) => {
+const gameOver = async(message: string) => {
   gameRunning.value = false;
   setTimeout(() => {
     canRetry.value = true;
   }, 2000);
   if (timer) clearInterval(timer);
-  if (localStorage.best === undefined || +localStorage.best < score.value) {
-    localStorage.best = score.value;
-    axios
-      .post(
-        "api/score",
-        { score: score.value },
-        {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-        }
-      )
-      .then((res) => {
-        console.log(res.data);
+
+  //localStorage.bestScore === undefined || localStorage.bestScore < score.value
+  if (localStorage.bestScore === undefined || localStorage.bestScore < score.value) {
+    localStorage.bestScore = score.value;
+    bestScore.value = score.value.toString();
+    // 更新session
+    await getUserRank();
+    
+    const data = {
+      score: Number(bestScore.value),
+      session: userRank.value?.session || '',
+    };    
+    sendScore(data)
+      .then((response) => {
+        console.log("分数上传成功", response);
+      })
+      .catch((error) => {
+        console.error("分数上传失败", error);
       });
   }
 };
+
+
+
 
 // 蝴蝶移动
 const birdMove = () => {
   if (birdTop.value < 0 || birdTop.value > 90) {
     segment.value = Math.floor(Math.abs(bgDis.value) / 450) + 1;
-    console.log(bgDis.value);
+    const modDis = Math.abs(bgDis.value) % bgWidth; // 统一模值，用于循环滚动匹配
+    console.log(modDis / bgWidth * 100);
 
     gameOver("触底了！");
     return;
@@ -299,7 +372,10 @@ const pipeMove = () => {
 const checkCollision = () => {
   for (const pipe of pipes.value) {
     if (pipe.left < 6 && pipe.left + 5 > 2) {
-      if (birdTop.value < pipe.height || birdTop.value > pipe.height + gap.value) {
+      if (
+        birdTop.value < pipe.height ||
+        birdTop.value > pipe.height + gap.value
+      ) {
         gameOverFlag.value = pipe.img;
         gameOver(`撞上了 ${pipe.img.name}`);
         return;
@@ -309,12 +385,11 @@ const checkCollision = () => {
       score.value++;
       if (score.value % 5 === 0) {
         // 每5分增加一次管道速度
-        space.value = Math.max(55, space.value - 10);
+        space.value = Math.max(56, space.value - 5);
         console.log(space.value);
-        
+
         // console.log("管道速度增加");
-        gap.value = Math.max(18.5, gap.value - 1);
-        
+        gap.value = Math.max(20.5, gap.value - 0.2);
       }
     }
   }
@@ -351,7 +426,7 @@ const playMusic = () => {
 
 // 分享功能
 const shareInfo = () => {
-  const score = localStorage.getItem("best") || 0;
+  const score = localStorage.getItem("bestScore") || 0;
   const shareData = {
     title: "Flappy Bird",
     text:
@@ -387,6 +462,34 @@ const shareInfo = () => {
   //   console.error("Error sharing:", error);
   // });
 };
+
+window.onload = () => {
+  // 预加载静态资源
+  const imageElements = Object.values(IMAGES).filter(
+    (url) =>
+      url.endsWith(".png") || url.endsWith(".jpg") || url.endsWith(".gif")
+  );
+  imageElements.forEach((url) => {
+    const img = new Image();
+    img.src = url;
+  });
+  PIPE_IMAGES.forEach((pip) => {
+    const img = new Image();
+    img.src = pip.url;
+  });
+  PIPE_IMAGES.forEach((pip) => {
+    const img = new Image();
+    img.src = pip.realurl;
+  });
+  campuses.forEach((campus) => {
+    const img = new Image();
+    campus.url.forEach((url) => {
+      const img = new Image();
+      img.src = url;
+    });
+  });
+};
+
 onMounted(() => {
   bgDis.value = 0;
   document.addEventListener("keydown", jump);
@@ -396,27 +499,9 @@ onMounted(() => {
   setTimeout(() => {
     if (audio && audio.paused) {
       playMusic();
-      console.log("音乐未播放");
-      console.log(videoPlaying.value);
     }
   }, 1000);
-  //预加载静态资源
-  // const imageElements = Object.values(IMAGES).filter(
-  //   (url) =>
-  //     url.endsWith(".png") || url.endsWith(".jpg") || url.endsWith(".gif")
-  // );
-  // imageElements.forEach((url) => {
-  //   const img = new Image();
-  //   img.src = url;
-  // });
-  // PIPE_IMAGES.forEach((pip) => {
-  //   const img = new Image();
-  //   img.src = pip.realurl;
-  // });
-  // campuses.forEach((campus) => {
-  //   const img = new Image();
-  //   img.src = campus.url;
-  // });
+  getPrize();
 });
 </script>
 <template>
@@ -567,7 +652,7 @@ onMounted(() => {
     <!-- 开始界面 -->
     <div
       v-if="!gameRunning"
-      class="absolute w-full h-full flex flex-col items-center bg-[url('/images/bg_1.png')] bg-cover bg-no-repeat bg-center"
+      class="absolute w-full h-full flex flex-col bg-bottom items-center bg-[url('/images/bg_1.png')] bg-cover bg-no-repeat "
     >
       <img
         src="/images/onlinelogo.png"
@@ -600,7 +685,7 @@ onMounted(() => {
       </button>
       <button
         @click="showRank"
-        class="mt-5 px-6 py-2 bg-[#e86101] border-2 rounded shadow cursor-pointer w-[150px]"
+        class="mt-5 px-6 py-2 bg-[#e86101] border-2 rounded shadow cursor-pointer w-[150px] "
       >
         <!-- <img :src="IMAGES.startBtn" alt="Start" /> -->
         <p
@@ -622,8 +707,7 @@ onMounted(() => {
     <div v-else>
       <!-- 计分 -->
       <div
-        class="absolute top-4 left-1/2 transform -translate-x-1/2 flex h-12 w-1/2 flex-col bg-cover bg-no-repeat bg-center justify-center items-center"
-      >
+      class="absolute w-full h-full flex flex-col items-center bg-bottom bg-no-repeat bg-contain sm:bg-contain"      >
         <p
           style="font-family: 'ChillBitmap'"
           class="text-white text-2xl font-mibold"
@@ -659,13 +743,13 @@ onMounted(() => {
           :style="{
             backgroundImage: `url(${pipe.img.url})`,
             height: '60vh',
-            transform: `translateY(${pipe.height - 60}vh) scaleY(-1)`,            
+            transform: `translateY(${pipe.height - 60}vh) scaleY(-1)`,
           }"
         ></div>
 
         <!-- 下管道 -->
         <div
-          class="bg-no-repeat bg-cover w-full bg-center absolute "
+          class="bg-no-repeat bg-cover w-full bg-center absolute"
           :style="{
             backgroundImage: `url(${pipe.img.url})`,
             height: '60vh',
@@ -787,6 +871,52 @@ onMounted(() => {
           >
             重试
           </button>
+        </div>
+      </div>
+    </div>
+    <div
+      class="absolute w-full h-screen bg-black opacity-50 animate-fadein"
+      v-if="userPrize && !rankStatus && board"
+    >
+      <!-- 返回箭头 -->
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        fill="white"
+        class="bi bi-arrow-left absolute left-2 top-2 cursor-pointer z-20"
+        viewBox="0 0 16 16"
+        @click="board = false"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M11.3 1.3a1 1 0 0 1 0 1.4L5.4 8l5.9 5.3a1 1 0 0 1-1.4 1.4l-7-6.3a1 1 0 0 1 0-1.4l7-6.3a1 1 0 0 1 1.4 0z"
+        />
+      </svg>
+    </div>
+
+    <div
+      class="absolute top-1/5 w-full flex flex-col items-center animate-scalein"
+      v-if="userPrize && !rankStatus && board"
+    >
+      <div
+        class="bg-contain bg-no-repeat bg-center w-full h-[60vh] flex flex-col items-center justify-center"
+        :style="{ backgroundImage: `url(${IMAGES.gameOver})` }"
+      >
+        <div
+          class="text-white text-2xl mt-4 z-10 break-words w-[65vw] overflow-y-auto h-[50vh]"
+          style="font-family: 'ChillBitmap'"
+        >
+          <!-- 您坠落在了{{ CAMPUS[segment].name }} -->
+          <p class="mb-3">恭喜你获得{{ userPrize }}</p>
+          <p class="mb-3">请在领奖时出示排行榜截图</p>
+          <p class="mb-3">
+            领取地点：中心校区八号楼负一山东大学学生工作数智赋能中心前台
+          </p>
+          <p class="mb-3">领奖时间：4月26日-4月29日（早八晚十除午休时间段）</p>
+          <p class="mb-3">
+            如需邮寄请将排行榜截图与收货人信息于4月28日晚十点前发送至sddxxszx@163.com
+          </p>
         </div>
       </div>
     </div>
