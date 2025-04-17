@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import axios from "axios";
-import { sendScore, verifyDataHash } from '@/utils/crypto'
+import { sendScore, verifyDataHash } from "@/utils/crypto";
 
 // 图片资源
 const IMAGES = {
   bg: "/images/bg.png",
   bird: "/images/bird.gif",
-  birdStatic: "/images/bird-static.png",
   gameOver: "/images/gameover-bg.png",
-  gameOverB: "/images/gameover-b-img.jpg",
   music: "/music/bg-music.mp3",
 };
 
@@ -19,64 +17,75 @@ const PIPE_IMAGES = [
     name: "野蔷薇",
     url: "/images/pipe/yqw.png",
     realurl: "/images/realphotos/yqw.jpg",
+    z_realurl: "/images/gzip/realphotos/yqw.jpg",
     position: "趵突泉校区",
   },
   {
     name: "大岛樱",
     url: "/images/pipe/ddy.png",
     realurl: "/images/realphotos/ddy.jpg",
+    z_realurl: "/images/gzip/realphotos/ddy.jpg",
     position: "兴隆山校区",
   },
   {
     name: "紫丁香",
     url: "/images/pipe/zdx.png",
     realurl: "/images/realphotos/zdx.JPG",
+    z_realurl: "/images/gzip/realphotos/zdx.JPG",
     position: "兴隆山校区",
   },
   {
     name: "玉兰",
     url: "/images/pipe/yl.png",
     realurl: "/images/realphotos/yl.jpg",
+    z_realurl: "/images/gzip/realphotos/yl.jpg",
     position: "中心校区",
   },
   {
     name: "海棠",
     url: "/images/pipe/ht.png",
     realurl: "/images/realphotos/ht.jpg",
+    z_realurl: "/images/gzip/realphotos/ht.jpg",
     position: "兴隆山校区",
   },
   {
     name: "海棠",
     url: "/images/pipe/ht.png",
     realurl: "/images/realphotos/ht-1.jpg",
+    z_realurl: "/images/gzip/realphotos/ht-1.jpg",
     position: "千佛山校区",
   },
   {
     name: "海棠",
     url: "/images/pipe/ht.png",
     realurl: "/images/realphotos/ht-2.jpg",
+    z_realurl: "/images/gzip/realphotos/ht-2.jpg",
     position: "洪家楼校区",
   },
   {
     name: "海棠",
     url: "/images/pipe/ht.png",
     realurl: "/images/realphotos/ht-3.jpg",
+    z_realurl: "/images/gzip/realphotos/ht-3.jpg",
     position: "洪家楼校区",
   },
   {
     name: "鸢尾",
     url: "/images/pipe/yw.png",
+    z_realurl: "/images/gzip/realphotos/yw.jpg",
     realurl: "/images/realphotos/yw.jpg",
     position: "趵突泉校区",
   },
   {
     name: "美人梅",
     url: "/images/pipe/mrm.png",
+    z_realurl: "/images/gzip/realphotos/mrm.jpg",
     realurl: "/images/realphotos/mrm.jpg",
     position: "趵突泉校区",
   },
   {
     name: "山樱花",
+    z_realurl: "/images/gzip/realphotos/syh.jpg",
     url: "/images/pipe/syh.png",
     realurl: "/images/realphotos/syh.jpg",
     position: "软件园校区",
@@ -84,36 +93,42 @@ const PIPE_IMAGES = [
   {
     name: "山樱花",
     url: "/images/pipe/syh.png",
+    z_realurl: "/images/gzip/realphotos/syh-1.jpg",
     realurl: "/images/realphotos/syh-1.jpg",
     position: "洪家楼校区",
   },
   {
     name: "樱花",
     url: "/images/pipe/syh.png",
+    z_realurl: "/images/gzip/realphotos/yh-1.jpg",
     realurl: "/images/realphotos/yh-1.jpg",
     position: "软件园校区",
   },
   {
     name: "樱花",
     url: "/images/pipe/syh.png",
+    z_realurl: "/images/gzip/realphotos/yh-2.jpg",
     realurl: "/images/realphotos/yh-2.jpg",
     position: "软件园校区",
   },
   {
     name: "樱花",
     url: "/images/pipe/syh.png",
+    z_realurl: "/images/gzip/realphotos/yh-3.jpg",
     realurl: "/images/realphotos/yh-3.jpg",
     position: "软件园校区",
   },
   {
     name: "郁金香",
     url: "/images/pipe/yjx.png",
+    z_realurl: "/images/gzip/realphotos/yjx.jpg",
     realurl: "/images/realphotos/yjx.jpg",
     position: "威海校区",
   },
   {
     name: "迎春",
     url: "/images/pipe/yc.png",
+    z_realurl: "/images/gzip/realphotos/yc.jpg",
     realurl: "/images/realphotos/yc.jpg",
     position: "青岛校区",
   },
@@ -121,29 +136,59 @@ const PIPE_IMAGES = [
 
 // 校区数组
 const campuses = [
-  { name: "中心校区", url: ["/images/campus/zx.jpg"], range: [0, 9.12] },
-  { name: "洪家楼校区", url: ["/images/campus/hjl.jpg"], range: [9.13, 20.60] },
-  { name: "兴隆山校区", url: ["/images/campus/xls.jpg"], range: [20.61, 34.20] },
-  { name: "趵突泉校区", url: ["/images/campus/btq.jpg"], range: [34.21, 50.00] },
-  { name: "千佛山校区", url: ["/images/campus/qfs.jpg"], range: [50.01, 68.34] },
-  { name: "软件园校区", url: ["/images/campus/rjy.jpg"], range: [68.35, 84.00] },
+  {
+    name: "中心校区",
+    url: ["/images/campus/zx.jpg"],
+    z_url: ["/images/gzip/campus/zx.jpg"],
+    range: [0, 9.12],
+  },
+  {
+    name: "洪家楼校区",
+    url: ["/images/campus/hjl.jpg"],
+    z_url: ["/images/campus/hjl.jpg"],
+    range: [9.13, 20.6],
+  },
+  {
+    name: "兴隆山校区",
+    url: ["/images/campus/xls.jpg"],
+    z_url: ["/images/campus/xls.jpg"],
+    range: [20.61, 34.2],
+  },
+  {
+    name: "趵突泉校区",
+    url: ["/images/campus/btq.jpg"],
+    z_url: ["/images/gzip/campus/btq.jpg"],
+    range: [34.21, 50.0],
+  },
+  {
+    name: "千佛山校区",
+    url: ["/images/campus/qfs.jpg"],
+    z_url: ["/images/gzip/campus/qfs.jpg"],
+    range: [50.01, 68.34],
+  },
+  {
+    name: "软件园校区",
+    url: ["/images/campus/rjy.jpg"],
+    z_url: ["/images/gzip/campus/rjy.jpg"],
+    range: [68.35, 84.0],
+  },
   {
     name: "威海校区",
     url: ["/images/campus/wh-1.jpg"],
+    z_url: ["/images/gzip/campus/wh-1.jpg"],
     range: [84.01, 90.65],
   },
   {
     name: "青岛校区",
     url: [
-      "/images/campus/qd-1.jpg"
+      "/images/campus/qd-1.jpg",
       // "/images/campus/wh-2.jpg",
       // "/images/campus/wh-3.jpg",
     ],
-    range: [90.65, 100]
+    z_url: ["/images/gzip/campus/qd-1.jpg"],
+    range: [90.65, 100],
   },
 ];
-
-
 
 const calculateBackgroundWidth = () => {
   const screenHeight = window.innerHeight; // 获取设备屏幕的高
@@ -168,12 +213,14 @@ const rank = ref<
 
 // 根据 bgDis 判断当前校区
 const getCurrentCampus = () => {
-
   const modDis = Math.abs(bgDis.value) % bgWidth; // 统一模值，用于循环滚动匹配
   for (const campus of campuses) {
-    if (modDis / bgWidth * 100 >= campus.range[0] && modDis / bgWidth * 100 <= campus.range[1]) {
-      console.log(modDis / bgWidth * 100);
-      
+    if (
+      (modDis / bgWidth) * 100 >= campus.range[0] &&
+      (modDis / bgWidth) * 100 <= campus.range[1]
+    ) {
+      console.log((modDis / bgWidth) * 100);
+
       return campus;
     }
   }
@@ -190,6 +237,7 @@ const gameOverFlag = ref<{
   name: string;
   url: string;
   realurl: string;
+  z_realurl: string;
   position: string;
 } | null>(null);
 const bestScore = ref(localStorage.getItem("bestScore") || "无");
@@ -213,7 +261,7 @@ const rankStatus = ref(true);
 const board = ref(true);
 // 排行榜状态
 axios
-  .get("/api//b3a5f6426379443ebf9322a0a3040215/leaderboard_status")
+  .get("/api/b3a5f6426379443ebf9322a0a3040215/leaderboard_status")
   .then((response) => {
     rankStatus.value = response.data;
   });
@@ -224,19 +272,17 @@ axios.get("api/player").then((response) => {
 const getUserRank = async () => {
   // const res = (await axios.get("api/player")).data;
   // console.log(await verifyDataHash(res.data, res.hash));
-  
-  
+
   // if (await verifyDataHash(res.data, res.hash)) {
   //   userRank.value = res.data.data;
   //   console.log("finish");
-    
+
   // }
   userRank.value = (await axios.get("api/player")).data.data;
-  
 };
 
-const getPrize = async() => {
-  getUserRank();
+const getPrize = async () => {
+  await getUserRank();
   if (userRank.value && userRank.value.rank <= 5) {
     userPrize.value = prizes[0];
   } else if (userRank.value && userRank.value.rank <= 30) {
@@ -244,12 +290,12 @@ const getPrize = async() => {
   } else {
     userPrize.value = null;
   }
+  console.log(userPrize.value);
+  
 };
 
-
-
 setInterval(() => {
-  randomTop.value = Math.floor(Math.random() * 50); 
+  randomTop.value = Math.floor(Math.random() * 50);
 }, 1000);
 
 // 蝴蝶位置
@@ -258,7 +304,7 @@ const pipes = ref<
   {
     height: number;
     left: number;
-    img: { name: string; url: string; realurl: string; position: string };
+    img: { name: string; url: string; realurl: string; z_realurl: string; position: string };
   }[]
 >([]);
 const space = ref(100);
@@ -289,16 +335,16 @@ const startGame = () => {
 };
 // 显示排行榜
 const showRank = async () => {
-  rank.value = (await axios.get("api/leaderboard")).data.data;  
+  rank.value = (await axios.get("api/leaderboard")).data.data;
   getUserRank();
-  
+
   // userRank.value = (await axios.get("https://flappybird.0linetekcenter.tech/api/player")).data;
   // rank.value = (await (axios.get("https://flappybird.0linetekcenter.tech/api/leaderboard"))).data;
   rankShow.value = true;
 };
 
 // 结束游戏
-const gameOver = async(message: string) => {
+const gameOver = async (message: string) => {
   gameRunning.value = false;
   setTimeout(() => {
     canRetry.value = true;
@@ -306,16 +352,19 @@ const gameOver = async(message: string) => {
   if (timer) clearInterval(timer);
 
   //localStorage.bestScore === undefined || localStorage.bestScore < score.value
-  if (localStorage.bestScore === undefined || localStorage.bestScore < score.value) {
+  if (
+    localStorage.bestScore === undefined ||
+    localStorage.bestScore < score.value
+  ) {
     localStorage.bestScore = score.value;
     bestScore.value = score.value.toString();
     // 更新session
     await getUserRank();
-    
+
     const data = {
       score: Number(bestScore.value),
-      session: userRank.value?.session || '',
-    };    
+      session: userRank.value?.session || "",
+    };
     sendScore(data)
       .then((response) => {
         console.log("分数上传成功", response);
@@ -326,20 +375,17 @@ const gameOver = async(message: string) => {
   }
 };
 
-
-
-
 // 蝴蝶移动
 const birdMove = () => {
   if (birdTop.value < 0 || birdTop.value > 90) {
     segment.value = Math.floor(Math.abs(bgDis.value) / 450) + 1;
     const modDis = Math.abs(bgDis.value) % bgWidth; // 统一模值，用于循环滚动匹配
-    console.log(modDis / bgWidth * 100);
+    console.log((modDis / bgWidth) * 100);
 
     gameOver("触底了！");
     return;
   }
-  speed.value += isDown.value ? 0.4 : 0.7;
+  speed.value += isDown.value ? 0.3 : 0.7;
   speed.value = Math.min(speed.value, 8);
   if (!isDown.value && speed.value >= 0) {
     isDown.value = true;
@@ -402,10 +448,14 @@ const bgMove = () => {
 
 // 图片下载
 const saveImg = () => {
+  
   const img = document.getElementById("flower") as HTMLImageElement;
+  const r_url = img.getAttribute("r_url");
+  console.log(r_url);
+
   const name = img.getAttribute("name");
   const link = document.createElement("a");
-  link.href = img.src;
+  link.href = r_url || ""; // 设置下载链接
   link.download = name + ".jpg";
   link.click(); // 触发点击事件，下载图片
 };
@@ -479,11 +529,10 @@ window.onload = () => {
   });
   PIPE_IMAGES.forEach((pip) => {
     const img = new Image();
-    img.src = pip.realurl;
+    img.src = pip.z_realurl;
   });
   campuses.forEach((campus) => {
-    const img = new Image();
-    campus.url.forEach((url) => {
+    campus.z_url.forEach((url) => {
       const img = new Image();
       img.src = url;
     });
@@ -652,7 +701,7 @@ onMounted(() => {
     <!-- 开始界面 -->
     <div
       v-if="!gameRunning"
-      class="absolute w-full h-full flex flex-col bg-bottom items-center bg-[url('/images/bg_1.png')] bg-cover bg-no-repeat "
+      class="absolute w-full h-full flex flex-col bg-bottom items-center bg-[url('/images/bg_1.png')] bg-cover bg-no-repeat"
     >
       <img
         src="/images/onlinelogo.png"
@@ -685,7 +734,7 @@ onMounted(() => {
       </button>
       <button
         @click="showRank"
-        class="mt-5 px-6 py-2 bg-[#e86101] border-2 rounded shadow cursor-pointer w-[150px] "
+        class="mt-5 px-6 py-2 bg-[#e86101] border-2 rounded shadow cursor-pointer w-[150px]"
       >
         <!-- <img :src="IMAGES.startBtn" alt="Start" /> -->
         <p
@@ -707,7 +756,8 @@ onMounted(() => {
     <div v-else>
       <!-- 计分 -->
       <div
-      class="absolute w-full h-full flex flex-col items-center bg-bottom bg-no-repeat bg-contain sm:bg-contain"      >
+        class="absolute w-full h-full flex flex-col items-center bg-bottom bg-no-repeat bg-contain sm:bg-contain"
+      >
         <p
           style="font-family: 'ChillBitmap'"
           class="text-white text-2xl font-mibold"
@@ -789,8 +839,9 @@ onMounted(() => {
         :style="{ backgroundImage: `url(${IMAGES.gameOver})` }"
       >
         <img
-          :src="gameOverFlag?.realurl"
+          :src="gameOverFlag?.z_realurl"
           alt="realimg"
+          :r_url="gameOverFlag?.realurl"
           class="mt-1 z-10 h-1/3 rounded-md border-4 border-[#543847]"
           id="flower"
           :name="gameOverFlag.name"
@@ -841,9 +892,10 @@ onMounted(() => {
         :style="{ backgroundImage: `url(${IMAGES.gameOver})` }"
       >
         <img
-          :src="getRandomIndex(getCurrentCampus().url)"
+          :src="getRandomIndex(getCurrentCampus().z_url)"
           alt="realimg"
           class="mt-1 z-10 h-1/3 rounded-md border-4 border-[#543847]"
+          :r_url="getCurrentCampus().url"
           id="flower"
           :name="getCurrentCampus().name"
         />
@@ -904,7 +956,7 @@ onMounted(() => {
         :style="{ backgroundImage: `url(${IMAGES.gameOver})` }"
       >
         <div
-          class="text-white text-2xl mt-4 z-10 break-words w-[65vw] overflow-y-auto h-[50vh]"
+          class="text-white text-2xl mt-4 z-10 break-words w-[65vw] max-w-[250px] overflow-y-auto h-[50vh]"
           style="font-family: 'ChillBitmap'"
         >
           <!-- 您坠落在了{{ CAMPUS[segment].name }} -->
